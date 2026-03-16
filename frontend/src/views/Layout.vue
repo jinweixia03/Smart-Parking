@@ -5,9 +5,9 @@
       <div class="sidebar-header">
         <div class="logo">
           <div class="logo-icon">
-            <el-icon size="28"><Car /></el-icon>
+            <img src="@/assets/images/logo.svg" alt="Logo" class="logo-img" />
           </div>
-          <span v-show="!isCollapsed" class="logo-text">SmartPark</span>
+          <span v-show="!isCollapsed" class="logo-text">StarParking</span>
         </div>
         <button class="collapse-btn" @click="toggleSidebar">
           <el-icon><Fold v-if="!isCollapsed" /><Expand v-else /></el-icon>
@@ -255,6 +255,13 @@ if (savedCollapsed) {
         justify-content: center;
         color: white;
         flex-shrink: 0;
+        overflow: hidden;
+
+        .logo-img {
+          width: 32px;
+          height: 32px;
+          object-fit: contain;
+        }
       }
 
       .logo-text {

@@ -14,9 +14,9 @@
         <div class="brand-content">
           <div class="logo-wrapper">
             <div class="logo-icon">
-              <el-icon :size="60" color="#fff"><Van /></el-icon>
+              <img src="@/assets/images/logo-white.svg" alt="Logo" class="logo-img" />
             </div>
-            <h1 class="brand-title">Smart Parking</h1>
+            <h1 class="brand-title">Star Parking</h1>
           </div>
           <div class="brand-text">
             <p class="greeting">Hi! 你好!</p>
@@ -141,7 +141,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { User, Lock, ArrowRight, Van, Check, ChatDotRound, Iphone } from '@element-plus/icons-vue'
+import { User, Lock, ArrowRight, Check, ChatDotRound, Iphone } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
@@ -371,14 +371,21 @@ const otherLogin = (type) => {
 }
 
 .logo-icon {
-  width: 64px;
-  height: 64px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
+  width: 72px;
+  height: 72px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  .logo-img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+  }
 }
 
 .brand-title {
