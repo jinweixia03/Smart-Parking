@@ -1,78 +1,70 @@
-# 智能停车场管理系统
+<p align="center">
+  <img src="frontend/src/assets/images/logo.svg" alt="Star Parking Logo" width="120" height="120">
+</p>
 
-基于深度学习的完整智能停车场仿真管理系统，使用 CCPD2019 数据集构建。
+<h1 align="center">Star Parking</h1>
 
-## 技术栈
+<p align="center">
+  <strong>基于深度学习的智能停车场管理系统</strong>
+</p>
 
-- **前端**: Vue3 + Element-Plus + Vite
-- **后端**: SpringBoot + MyBatis-Plus
-- **数据库**: MySQL + Redis
-- **算法**: Python + PyTorch + YOLOv8 + LPRNet
-- **部署**: Docker + Docker Compose
+<p align="center">
+  <a href="#"><img src="https://img.shields.io/badge/Spring%20Boot-3.2.5-6DB33F?logo=springboot" alt="Spring Boot"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Vue.js-3.4-4FC08D?logo=vue.js" alt="Vue.js"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Python-3.10-3776AB?logo=python" alt="Python"></a>
+  <a href="#"><img src="https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql" alt="MySQL"></a>
+  <a href="#"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
+</p>
 
-## 项目结构
+<p align="center">
+  <b>简体中文</b> | <a href="#">English</a>
+</p>
 
-```
-BSYCode/
-├── database/           # 数据库SQL脚本
-│   └── smart_parking.sql
-├── backend/            # Spring Boot后端
-│   ├── src/main/java/com/parking/
-│   │   ├── controller/ # 控制器
-│   │   ├── service/    # 业务逻辑
-│   │   ├── mapper/     # 数据访问
-│   │   ├── entity/     # 实体类
-│   │   ├── config/     # 配置类
-│   │   └── utils/      # 工具类
-│   └── pom.xml
-├── frontend/           # Vue3前端
-│   ├── src/
-│   │   ├── api/        # API接口
-│   │   ├── views/      # 页面组件
-│   │   ├── stores/     # Pinia状态管理
-│   │   └── router/     # 路由配置
-│   └── package.json
-├── algorithm/          # Python算法服务
-│   ├── src/models/     # 模型代码
-│   ├── app.py          # Flask主应用
-│   └── requirements.txt
-└── docker/             # Docker部署
-    ├── docker-compose.yml
-    └── Dockerfile.*
-```
+---
 
-## 快速开始
+## ✨ 特性
 
-### 1. 环境要求
+- 🚗 **车牌智能识别** - 基于 YOLO + LPRNet 的端到端车牌检测与识别
+- 📊 **数据可视化大屏** - 实时车位状态、收入统计、流量分析
+- 🅿️ **停车全流程管理** - 车辆入场、出场、计费、缴费一体化
+- 🔐 **JWT 认证授权** - Spring Security + JWT 安全认证机制
+- 🎨 **现代化 UI** - Element Plus + 流畅动画效果
+- 📱 **响应式设计** - 支持桌面端、平板端访问
 
-- Docker 20.10+
-- Docker Compose 2.0+
-- Java 17+ (本地开发)
-- Node.js 20+ (本地开发)
-- Python 3.10+ (本地开发)
+## 🚀 快速开始
 
-### 2. Docker一键部署
+### 环境要求
+
+| 组件 | 版本 |
+|------|------|
+| Java | 17+ |
+| Node.js | 20+ |
+| Python | 3.10+ |
+| MySQL | 8.0+ |
+
+### 1. 克隆项目
 
 ```bash
-cd docker
-docker-compose up -d
+git clone https://github.com/jinweixia03/Star-Parking.git
+cd Star-Parking
 ```
 
-访问：
-- 前端页面: http://localhost
-- 后端API: http://localhost:8080/api
-- 算法服务: http://localhost:5000
+### 2. 数据库初始化
 
-### 3. 本地开发
+```bash
+mysql -u root -p < database/smart_parking.sql
+```
 
-#### 后端
+### 3. 启动后端
 
 ```bash
 cd backend
 mvn spring-boot:run
 ```
 
-#### 前端
+后端服务默认运行在 `http://localhost:8080/api`
+
+### 4. 启动前端
 
 ```bash
 cd frontend
@@ -80,7 +72,9 @@ npm install
 npm run dev
 ```
 
-#### 算法服务
+前端开发服务器默认运行在 `http://localhost:5173`
+
+### 5. 启动算法服务（可选）
 
 ```bash
 cd algorithm
@@ -88,52 +82,113 @@ pip install -r requirements.txt
 python app.py
 ```
 
-## 数据库初始化
+算法服务默认运行在 `http://localhost:5000`
 
-数据库会在Docker启动时自动初始化，或手动执行：
+## 📁 项目结构
 
-```bash
-mysql -u root -p < database/smart_parking.sql
+```
+Star-Parking/
+├── frontend/                 # Vue3 前端项目
+│   ├── src/
+│   │   ├── api/             # API 接口
+│   │   ├── views/           # 页面视图
+│   │   ├── stores/          # Pinia 状态管理
+│   │   └── router/          # 路由配置
+│   └── package.json
+├── backend/                  # Spring Boot 后端项目
+│   ├── src/main/java/com/parking/
+│   │   ├── controller/      # 控制器层
+│   │   ├── service/         # 业务逻辑层
+│   │   ├── mapper/          # 数据访问层
+│   │   ├── entity/          # 实体类
+│   │   └── utils/           # 工具类
+│   ├── src/main/resources/mapper/  # MyBatis XML
+│   └── pom.xml
+├── algorithm/                # Python 算法服务
+│   ├── src/models/          # 模型定义
+│   ├── app.py               # Flask 主应用
+│   └── requirements.txt
+└── database/
+    └── smart_parking.sql    # 数据库初始化脚本
 ```
 
-## 默认账号
+## 🛠️ 技术栈
 
-- 管理员: admin / admin123
-- 操作员: operator / admin123
+### 前端
 
-## 核心功能
+- **框架**: [Vue 3](https://vuejs.org/) + Composition API
+- **构建工具**: [Vite 5](https://vitejs.dev/)
+- **UI 组件库**: [Element Plus](https://element-plus.org/)
+- **状态管理**: [Pinia](https://pinia.vuejs.org/)
+- **路由**: [Vue Router 4](https://router.vuejs.org/)
+- **图表**: [ECharts 5](https://echarts.apache.org/)
+- **动画**: [GSAP](https://greensock.com/gsap/)
+- **工具库**: [VueUse](https://vueuse.org/)
 
-- **车牌识别**: 基于YOLOv8 + LPRNet的端到端车牌识别
-- **停车管理**: 车辆入场、出场、缴费全流程管理
-- **车位管理**: 实时车位状态监控与分配
-- **数据统计**: 停车流量、收入统计、图表展示
-- **仿真系统**: 基于CCPD数据集的入场/出场仿真
-- **用户系统**: 用户注册、车辆绑定、缴费记录
+### 后端
 
-## 算法模型
+- **框架**: [Spring Boot 3.2](https://spring.io/projects/spring-boot)
+- **ORM**: [MyBatis Plus 3.5](https://baomidou.com/)
+- **安全**: Spring Security + JWT
+- **实时通信**: WebSocket
+- **JSON 处理**: FastJSON2
+- **工具库**: Hutool
 
-### YOLOv8 检测模型
-- 输入尺寸: 640x640
-- 检测目标: 车牌区域
-- 输出: 边界框坐标 + 置信度
+### 算法
 
-### LPRNet 识别模型
-- 输入尺寸: 94x24
-- 字符集: 数字 + 字母 + 31个省级行政区
-- 输出: 车牌字符串 + 置信度
+- **Web 框架**: Flask
+- **数据处理**: Pandas, NumPy
+- **可视化**: Matplotlib
+- **深度学习**: PyTorch (预留接口)
 
-## API文档
+## 📸 截图
 
-启动后访问：http://localhost:8080/api/swagger-ui.html
+| 登录页面 | 数据大屏 | 停车管理 |
+|:--------:|:--------:|:--------:|
+| <img src="docs/images/login.png" width="280"> | <img src="docs/images/dashboard.png" width="280"> | <img src="docs/images/parking.png" width="280"> |
 
-## 开发计划
+## 🔑 默认账号
 
-1. 完善算法模型训练与部署
-2. 添加更多仿真场景
-3. 集成支付接口
-4. 移动端H5适配
-5. 添加视频监控模块
+```
+管理员: admin / admin123
+```
 
-## 许可证
+## 🔌 API 文档
 
-MIT License
+后端启动后访问 Swagger UI：
+
+```
+http://localhost:8080/api/swagger-ui.html
+```
+
+## 📝 配置说明
+
+### 后端配置 (`backend/src/main/resources/application.yml`)
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/smart_parking
+    username: root
+    password: your_password
+
+jwt:
+  secret: your-secret-key
+  expiration: 86400000  # 24 hours
+```
+
+### 前端代理配置 (`frontend/vite.config.ts`)
+
+开发环境已配置代理：
+
+```typescript
+server: {
+  proxy: {
+    '/api': 'http://localhost:8080'
+  }
+}
+```
+
+## 📜 许可证
+
+[MIT License](LICENSE) © 2024 Star Parking Team
