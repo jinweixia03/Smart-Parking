@@ -1,0 +1,137 @@
+# ============================================
+# Git Attributes File
+# ============================================
+
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Source code
+*.js    text eol=lf
+*.jsx   text eol=lf
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.vue   text eol=lf
+*.py    text eol=lf
+*.java  text eol=lf
+*.c     text eol=lf
+*.cpp   text eol=lf
+*.h     text eol=lf
+*.hpp   text eol=lf
+*.go    text eol=lf
+*.rs    text eol=lf
+*.swift text eol=lf
+*.kt    text eol=lf
+
+# Web
+*.html  text eol=lf
+*.htm   text eol=lf
+*.css   text eol=lf
+*.scss  text eol=lf
+*.sass  text eol=lf
+*.less  text eol=lf
+*.json  text eol=lf
+*.xml   text eol=lf
+*.yaml  text eol=lf
+*.yml   text eol=lf
+
+# Config files
+*.md       text eol=lf
+*.mdx      text eol=lf
+*.txt      text eol=lf
+*.sh       text eol=lf
+*.bash     text eol=lf
+*.zsh      text eol=lf
+*.fish     text eol=lf
+*.conf     text eol=lf
+*.config   text eol=lf
+*.ini      text eol=lf
+.env*      text eol=lf
+.editorconfig text eol=lf
+
+# Documentation
+*.rst      text eol=lf
+*.adoc     text eol=lf
+LICENSE    text eol=lf
+README*    text eol=lf
+CHANGELOG* text eol=lf
+
+# Scripts
+*.bat      text eol=crlf
+*.cmd      text eol=crlf
+*.ps1      text eol=crlf
+
+# Binary files (do not treat as text)
+# Images
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.ico      binary
+*.svg      text
+*.webp     binary
+*.bmp      binary
+*.tiff     binary
+*.tif      binary
+
+# Fonts
+*.ttf      binary
+*.otf      binary
+*.woff     binary
+*.woff2    binary
+*.eot      binary
+
+# Archives
+*.zip      binary
+*.tar      binary
+*.tar.gz   binary
+*.tgz      binary
+*.rar      binary
+*.7z       binary
+*.bz2      binary
+*.gz       binary
+
+# Documents
+*.pdf      binary
+*.doc      binary
+*.docx     binary
+*.xls      binary
+*.xlsx     binary
+*.ppt      binary
+*.pptx     binary
+
+# Media
+*.mp3      binary
+*.mp4      binary
+*.avi      binary
+*.mov      binary
+*.wmv      binary
+*.flv      binary
+*.wav      binary
+*.ogg      binary
+*.webm     binary
+
+# Compiled / Machine code
+*.exe      binary
+*.dll      binary
+*.so       binary
+*.dylib    binary
+*.class    binary
+*.jar      binary
+*.war      binary
+*.ear      binary
+*.o        binary
+*.obj      binary
+*.a        binary
+*.lib      binary
+
+# Model files
+*.pth      binary
+*.pt       binary
+*.weights  binary
+*.onnx     binary
+*.pb       binary
+*.h5       binary
+*.hdf5     binary
+*.pkl      binary
+*.pickle   binary
+*.joblib   binary

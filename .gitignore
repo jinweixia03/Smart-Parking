@@ -1,0 +1,225 @@
+# ============================================
+# Git Ignore File for Parking System Project
+# ============================================
+
+# ============================================
+# Node.js / Frontend
+# ============================================
+# Dependencies
+frontend/node_modules/
+node_modules/
+*/node_modules/
+
+# Production build
+frontend/dist/
+dist/
+build/
+
+# Log files
+*.log
+frontend/*.log
+backend/*.log
+algorithm/*.log
+logs/
+log/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# Cache
+.cache/
+*.tsbuildinfo
+
+# ============================================
+# Python / Backend
+# ============================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# PyCharm / IntelliJ
+.idea/
+*.iml
+
+# ============================================
+# Java / Maven / Spring Boot
+# ============================================
+backend/target/
+backend/logs/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/
+mvnw
+mvnw.cmd
+.factorypath
+.project
+.classpath
+.apt_generated/
+.springBeans
+
+# ============================================
+# IDE / Editor
+# ============================================
+# VSCode
+.vscode/
+*.code-workspace
+
+# Visual Studio
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# ============================================
+# OS Generated Files
+# ============================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.nfs*
+
+# ============================================
+# Database
+# ============================================
+*.sqlite
+*.sqlite3
+*.db
+
+# ============================================
+# Algorithm / ML Data
+# ============================================
+# Data directories (large files)
+algorithm/data/
+algorithm/datasets/
+algorithm/images/
+algorithm/videos/
+algorithm/weights/
+algorithm/models/*.pth
+algorithm/models/*.pt
+algorithm/models/*.weights
+data/
+datasets/
+
+# ============================================
+# Model Files (Large files)
+# ============================================
+# Pre-trained models (if large)
+*.pth
+*.pt
+*.weights
+*.onnx
+*.pb
+*.h5
+*.hdf5
+
+# But keep model structure documentation
+!models/README.md
+
+# ============================================
+# Temporary Files
+# ============================================
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+*.swp
+*.swo
+*~
+
+# ============================================
+# Uploaded Files / Runtime Data
+# ============================================
+uploads/
+static/uploads/
+media/
+
+# ============================================
+# Claude Code
+# ============================================
+.claude/
+memory/

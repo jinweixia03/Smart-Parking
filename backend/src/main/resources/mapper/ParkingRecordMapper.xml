@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.parking.mapper.ParkingRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.parking.entity.ParkingRecord">
+        <id column="record_id" property="recordId"/>
+        <result column="user_id" property="userId"/>
+        <result column="vehicle_id" property="vehicleId"/>
+        <result column="plate_number" property="plateNumber"/>
+        <result column="space_id" property="spaceId"/>
+        <result column="entry_time" property="entryTime"/>
+        <result column="entry_gate" property="entryGate"/>
+        <result column="exit_time" property="exitTime"/>
+        <result column="exit_gate" property="exitGate"/>
+        <result column="parking_minutes" property="parkingMinutes"/>
+        <result column="fee_amount" property="feeAmount"/>
+        <result column="payable_amount" property="payableAmount"/>
+        <result column="paid_amount" property="paidAmount"/>
+        <result column="pay_status" property="payStatus"/>
+        <result column="pay_time" property="payTime"/>
+        <result column="status" property="status"/>
+        <result column="space_code" property="spaceCode"/>
+        <result column="area_code" property="areaCode"/>
+        <result column="username" property="username"/>
+    </resultMap>
+
+    <select id="selectPageWithDetail" resultMap="BaseResultMap">
+        SELECT r.*, s.space_code, a.area_code, u.username
+        FROM parking_record r
+        LEFT JOIN parking_space s ON r.space_id = s.space_id
+        LEFT JOIN parking_area a ON s.area_id = a.area_id
+        LEFT JOIN sys_user u ON r.user_id = u.user_id
+        <where>
+            <if test="plateNumber != null and plateNumber != ''">
+                AND r.plate_number LIKE CONCAT('%', #{plateNumber}, '%')
+            </if>
+            <if test="status != null">
+                AND r.status = #{status}
+            </if>
+            <if test="payStatus != null">
+                AND r.pay_status = #{payStatus}
+            </if>
+        </where>
+        ORDER BY r.create_time DESC
+    </select>
+
+    <select id="selectHourlyStats" resultType="java.util.HashMap">
+        SELECT
+            HOUR(entry_time) as hour,
+            COUNT(*) as count
+        FROM parking_record
+        WHERE DATE(entry_time) = #{date}
+        GROUP BY HOUR(entry_time)
+        ORDER BY hour
+    </select>
+
+    <select id="selectDailyStats" resultType="java.util.HashMap">
+        SELECT
+            DATE(entry_time) as date,
+            COUNT(*) as entryCount,
+            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as exitCount,
+            COALESCE(SUM(paid_amount), 0) as revenue
+        FROM parking_record
+        WHERE DATE(entry_time) BETWEEN #{startDate} AND #{endDate}
+        GROUP BY DATE(entry_time)
+        ORDER BY date
+    </select>
+
+    <select id="selectAreaStats" resultType="java.util.HashMap">
+        SELECT
+            a.area_name as areaName,
+            COUNT(*) as count,
+            COALESCE(SUM(r.paid_amount), 0) as revenue
+        FROM parking_record r
+        LEFT JOIN parking_space s ON r.space_id = s.space_id
+        LEFT JOIN parking_area a ON s.area_id = a.area_id
+        WHERE DATE(r.entry_time) = CURDATE()
+        GROUP BY a.area_id
+    </select>
+</mapper>
