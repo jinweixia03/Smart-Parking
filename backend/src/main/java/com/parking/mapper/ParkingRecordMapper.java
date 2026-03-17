@@ -21,8 +21,8 @@ public interface ParkingRecordMapper extends BaseMapper<ParkingRecord> {
     @Select("SELECT * FROM parking_record WHERE plate_number = #{plateNumber} AND status = 0 ORDER BY entry_time DESC LIMIT 1")
     ParkingRecord selectActiveByPlate(String plateNumber);
 
-    @Select("SELECT * FROM parking_record WHERE user_id = #{userId} ORDER BY entry_time DESC")
-    List<ParkingRecord> selectByUserId(Long userId);
+    @Select("SELECT * FROM parking_record WHERE plate_number = #{plateNumber} ORDER BY entry_time DESC")
+    List<ParkingRecord> selectByPlateNumber(String plateNumber);
 
     Page<ParkingRecord> selectPageWithDetail(Page<ParkingRecord> page,
                                               @Param("plateNumber") String plateNumber,
@@ -57,4 +57,13 @@ public interface ParkingRecordMapper extends BaseMapper<ParkingRecord> {
     List<Map<String, Object>> selectDailyStats(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
     List<Map<String, Object>> selectAreaStats();
+
+    /**
+     * 查询指定车牌的最近N条停车记录
+     * @param plateNumber 车牌号
+     * @param limit 返回记录数
+     * @return 停车记录列表
+     */
+    @Select("SELECT * FROM parking_record WHERE plate_number = #{plateNumber} ORDER BY entry_time DESC LIMIT #{limit}")
+    List<ParkingRecord> selectRecentByPlate(@Param("plateNumber") String plateNumber, @Param("limit") int limit);
 }

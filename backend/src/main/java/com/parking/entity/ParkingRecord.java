@@ -22,10 +22,6 @@ public class ParkingRecord implements Serializable {
     @TableId(value = "record_id", type = IdType.AUTO)
     private Long recordId;
 
-    private Long userId;
-
-    private Long vehicleId;
-
     private String plateNumber;
 
     private Long spaceId;
@@ -35,14 +31,10 @@ public class ParkingRecord implements Serializable {
 
     private String entryGate;
 
-    private String entryImage;
-
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime exitTime;
 
     private String exitGate;
-
-    private String exitImage;
 
     private Integer parkingMinutes;
 

@@ -44,9 +44,9 @@ public interface ParkingRecordService extends IService<ParkingRecord> {
     Page<ParkingRecord> pageRecords(Page<ParkingRecord> page, String plateNumber, Integer status, Integer payStatus);
 
     /**
-     * 获取用户停车记录
+     * 根据车牌号查询停车记录
      */
-    List<ParkingRecord> getUserRecords(Long userId);
+    List<ParkingRecord> getRecordsByPlateNumber(String plateNumber);
 
     /**
      * 获取今日统计
@@ -62,4 +62,9 @@ public interface ParkingRecordService extends IService<ParkingRecord> {
      * 获取图表数据
      */
     Map<String, Object> getChartData(String type, String startDate, String endDate);
+
+    /**
+     * 获取车辆详情（当前停车信息 + 近5次停车记录）
+     */
+    Map<String, Object> getVehicleDetail(String plateNumber);
 }
