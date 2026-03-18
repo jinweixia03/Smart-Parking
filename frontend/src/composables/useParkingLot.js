@@ -4,12 +4,12 @@ import { getSpaces } from '@/api/parking.js'
 
 export function useParkingLot() {
   const spaces = ref([])
-  const currentFloor = ref(1) // 使用数字 1 或 2
+  const currentFloor = ref(1) // 与数据库一致：1=一层, 2=二层
   const selectedSpace = ref(null)
 
   // 根据 floor 字段筛选（后端返回 1 或 2）
   const floorSpaces = computed(() =>
-    spaces.value.filter(s => s.floor === currentFloor.value)
+    spaces.value.filter(s => Number(s.floor) === currentFloor.value)
   )
 
   const freeCount = computed(() =>
@@ -21,7 +21,7 @@ export function useParkingLot() {
   )
 
   const vipCount = computed(() =>
-    floorSpaces.value.filter(s => s.spaceType === SPACE_TYPES.VIP).length
+    floorSpaces.value.filter(s => s.areaType === SPACE_TYPES.VIP || s.areaCode === 'D').length
   )
 
   const occupancyRate = computed(() => {
@@ -29,13 +29,39 @@ export function useParkingLot() {
     return Math.round((occupiedCount.value / floorSpaces.value.length) * 100)
   })
 
+  // 适配后端数据格式
+  // 后端: { spaceCode: 'A001', floor: 1, areaCode: 'A', areaType: '普通' }
+  function adaptSpaceData(data) {
+    if (!data || !Array.isArray(data)) return []
+
+    return data.map((space) => {
+      // 保留原始数据
+      const adapted = { ...space }
+
+      // 确保 areaType 存在（根据 areaCode 推断）
+      if (!adapted.areaType && adapted.areaCode) {
+        const typeMap = {
+          'A': '普通',
+          'B': '充电桩',
+          'C': '普通',
+          'D': 'VIP'
+        }
+        adapted.areaType = typeMap[adapted.areaCode] || '普通'
+      }
+
+      return adapted
+    })
+  }
+
   async function initData() {
     try {
-      const data = await getSpaces()
-      console.log('获取车位数据:', data)
-      if (data && Array.isArray(data)) {
-        spaces.value = data
-        console.log(`共获取 ${data.length} 个车位, 一层: ${data.filter(s => s.floor === 1).length}, 二层: ${data.filter(s => s.floor === 2).length}`)
+      const res = await getSpaces()
+      console.log('获取车位数据:', res)
+      // 处理后端返回的 Result 结构
+      const rawData = res.data || res
+      if (rawData && Array.isArray(rawData)) {
+        spaces.value = adaptSpaceData(rawData)
+        console.log(`共获取 ${spaces.value.length} 个车位, 一层: ${spaces.value.filter(s => s.floor === 1).length}, 二层: ${spaces.value.filter(s => s.floor === 2).length}`)
       }
     } catch (error) {
       console.error('获取车位数据失败:', error)
@@ -43,9 +69,8 @@ export function useParkingLot() {
   }
 
   function switchFloor(floorCode) {
-    // floorCode 可能是 'F1' 或 'B1'，转换为数字 1 或 2
-    const floorMap = { 'F1': 1, 'B1': 2 }
-    currentFloor.value = floorMap[floorCode] || 1
+    // floorCode 直接是数字 1 或 2
+    currentFloor.value = Number(floorCode) || 1
     selectedSpace.value = null
   }
 

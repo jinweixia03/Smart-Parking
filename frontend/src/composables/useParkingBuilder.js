@@ -1162,8 +1162,8 @@ export function useParkingBuilder(scene, materials, spaceMeshes, carMeshes) {
     const group = new THREE.Group()
     group.position.set(x, 0, z)
 
-    const isVip = space.spaceType === 'VIP'
-    const isDisabled = space.spaceType === '残疾人车位'
+    const isVip = space.areaType === 'VIP'
+    const isDisabled = space.areaType === '残疾人车位'
     const isOccupied = space.status === 1
 
     let color = COLORS.spaceFree
@@ -1215,7 +1215,7 @@ export function useParkingBuilder(scene, materials, spaceMeshes, carMeshes) {
     group.add(lines)
 
     // 编号标签（根据类型显示不同颜色）
-    const label = createGroundLabel(space.spaceCode.split('-')[1], isVip, isDisabled)
+    const label = createGroundLabel(space.spaceCode, isVip, isDisabled)
     // 标签高度由createGroundLabel内部设置，此处只需设置x,z位置
 
     // 根据朝向旋转标签
@@ -1275,13 +1275,13 @@ export function useParkingBuilder(scene, materials, spaceMeshes, carMeshes) {
     // 精致车辆模型 - 占用状态显示车辆，或每5个车位显示一个测试车辆
     const showTestCar = !isOccupied && (spaceIndex % 5 === 0)
     if (isOccupied || showTestCar) {
-      const car = createCar(space.spaceType)
+      const car = createCar(space.areaType)
 
       // 根据车位类型和方向计算合适的汽车比例
       // 车位尺寸: NS方向 10m x 20m, EW方向 20m x 10m
       // 汽车原始尺寸约: 长8.5m, 宽4m
-      const isVIP = space.spaceType === 'VIP'
-      const isDisabled = space.spaceType === '残疾人车位'
+      const isVIP = space.areaType === 'VIP'
+      const isDisabled = space.areaType === '残疾人车位'
 
       // 计算合适的缩放比例，使汽车占车位深度的110%，稍微溢出
       let carScale

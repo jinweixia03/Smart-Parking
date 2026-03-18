@@ -1,51 +1,43 @@
 <template>
-  <div class="record-manage-2-5d">
-    <!-- 页面标题区 -->
-    <div class="page-header">
-      <div class="header-left">
-        <div class="title-icon">
-          <el-icon><Document /></el-icon>
+  <div class="record-manage">
+    <el-card>
+      <template #header>
+        <div class="card-header">
+          <span>停车记录</span>
+          <div class="header-actions">
+            <el-input
+              v-model="searchForm.plateNumber"
+              placeholder="搜索车牌号"
+              style="width: 200px"
+              clearable
+              @keyup.enter="fetchRecords"
+            >
+              <template #append>
+                <el-button @click="fetchRecords">
+                  <el-icon><Search /></el-icon>
+                </el-button>
+              </template>
+            </el-input>
+            <el-date-picker
+              v-model="dateRange"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              style="width: 240px"
+              @change="handleDateChange"
+            />
+            <el-button type="primary" @click="fetchRecords">
+              <el-icon><Search /></el-icon>查询
+            </el-button>
+            <el-button @click="refreshData">
+              <el-icon><Refresh /></el-icon>刷新
+            </el-button>
+          </div>
         </div>
-        <div class="title-content">
-          <h1 class="page-title">停车记录</h1>
-          <p class="page-subtitle">查看和管理所有停车记录</p>
-        </div>
-      </div>
-      <div class="header-actions">
-        <div class="search-box">
-          <el-icon class="search-icon"><Search /></el-icon>
-          <el-input
-            v-model="searchForm.plateNumber"
-            placeholder="搜索车牌号..."
-            clearable
-            @keyup.enter="fetchRecords"
-          />
-        </div>
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          style="width: 240px"
-          @change="handleDateChange"
-        />
-        <button class="action-btn primary" @click="fetchRecords">
-          <el-icon><Search /></el-icon>
-          查询
-        </button>
-        <button class="action-btn" @click="refreshData">
-          <el-icon><Refresh /></el-icon>
-          刷新
-        </button>
-        <button class="action-btn export" @click="exportData">
-          <el-icon><Download /></el-icon>
-          导出
-        </button>
-      </div>
-    </div>
+      </template>
 
-    <!-- 统计卡片 -->
+      <!-- 统计卡片 -->
     <div class="stats-cards">
       <div class="stat-card" v-for="(stat, index) in stats" :key="index" :style="{ animationDelay: `${index * 100}ms` }">
         <div class="stat-icon" :style="{ background: stat.bgColor }">
@@ -89,7 +81,7 @@
       </div>
 
       <!-- 列表视图 -->
-      <div v-show="viewMode === 'list'" class="table-content">
+      <div v-show="viewMode === 'list'" class="table-wrapper">
         <el-table
           :data="filteredRecords"
           v-loading="loading"
@@ -291,7 +283,8 @@
         </div>
       </div>
     </el-dialog>
-  </div>
+  </el-card>
+</div>
 </template>
 
 <script setup>
@@ -455,50 +448,37 @@ onMounted(() => {
 <style scoped lang="scss">
 @use '@/styles/parking-2.5d-theme.scss' as *;
 
-.record-manage-2-5d {
-  min-height: 100%;
+.record-manage {
   padding: 24px;
+  height: 100%;
+  box-sizing: border-box;
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f1f5f9 100%);
-}
 
-// 页面标题
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-
-  .header-left {
+  :deep(.el-card) {
+    height: 100%;
     display: flex;
-    align-items: center;
-    gap: 16px;
+    flex-direction: column;
 
-    .title-icon {
-      width: 56px;
-      height: 56px;
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-      border-radius: 16px;
+    .el-card__body {
+      flex: 1;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 28px;
-      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+      flex-direction: column;
+      overflow: hidden;
+      padding: 0;
     }
+  }
 
-    .title-content {
-      .page-title {
-        font-size: 24px;
-        font-weight: 700;
-        color: #1e293b;
-        margin: 0;
-      }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
 
-      .page-subtitle {
-        font-size: 14px;
-        color: #64748b;
-        margin: 4px 0 0;
-      }
+    span {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1e293b;
     }
   }
 
@@ -506,69 +486,7 @@ onMounted(() => {
     display: flex;
     align-items: center;
     gap: 12px;
-
-    .search-box {
-      position: relative;
-      display: flex;
-      align-items: center;
-
-      .search-icon {
-        position: absolute;
-        left: 12px;
-        color: #94a3b8;
-        font-size: 16px;
-      }
-
-      :deep(.el-input) {
-        .el-input__wrapper {
-          padding-left: 36px;
-          border-radius: 12px;
-          background: rgba(255, 255, 255, 0.8);
-          box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
-        }
-      }
-    }
-
-    .action-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
-      border: 1px solid rgba(59, 130, 246, 0.2);
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.8);
-      color: #64748b;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-
-      &:hover {
-        background: rgba(59, 130, 246, 0.1);
-        border-color: rgba(59, 130, 246, 0.4);
-        color: #3b82f6;
-      }
-
-      &.primary {
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
-        border-color: transparent;
-        color: white;
-
-        &:hover {
-          box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-          transform: translateY(-2px);
-        }
-      }
-
-      &.export {
-        border-color: rgba(16, 185, 129, 0.3);
-        color: #10b981;
-
-        &:hover {
-          background: rgba(16, 185, 129, 0.1);
-        }
-      }
-    }
+    flex-wrap: wrap;
   }
 }
 
@@ -576,30 +494,31 @@ onMounted(() => {
 .stats-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 24px;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
 .stat-card {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 20px;
+  gap: 12px;
+  padding: 14px 16px;
   @include glass-glacier;
-  border-radius: 16px;
+  border-radius: 12px;
   animation: slideUp 0.5s ease forwards;
   opacity: 0;
   transform: translateY(20px);
 
   .stat-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 24px;
+    font-size: 18px;
   }
 
   .stat-content {
@@ -608,13 +527,13 @@ onMounted(() => {
     flex-direction: column;
 
     .stat-value {
-      font-size: 24px;
+      font-size: 20px;
       font-weight: 700;
       color: #1e293b;
     }
 
     .stat-label {
-      font-size: 13px;
+      font-size: 12px;
       color: #64748b;
       margin-top: 2px;
     }
@@ -624,9 +543,9 @@ onMounted(() => {
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 6px 12px;
+    padding: 4px 10px;
     border-radius: 20px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
 
     &.up {
@@ -651,27 +570,32 @@ onMounted(() => {
 // 数据表格容器
 .data-table-container {
   @include glass-glacier;
-  border-radius: 20px;
-  padding: 24px;
+  border-radius: 16px;
+  padding: 16px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 
   .table-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
 
     .table-tabs {
       display: flex;
-      gap: 8px;
+      gap: 6px;
 
       .tab-btn {
         position: relative;
-        padding: 10px 20px;
+        padding: 8px 16px;
         border: none;
-        border-radius: 10px;
+        border-radius: 8px;
         background: transparent;
         color: #64748b;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 500;
         cursor: pointer;
         transition: all 0.3s ease;
@@ -688,15 +612,15 @@ onMounted(() => {
 
         .tab-badge {
           position: absolute;
-          top: 4px;
-          right: 4px;
-          min-width: 18px;
-          height: 18px;
-          padding: 0 6px;
+          top: 2px;
+          right: 2px;
+          min-width: 16px;
+          height: 16px;
+          padding: 0 5px;
           background: #ef4444;
           color: white;
-          font-size: 11px;
-          border-radius: 9px;
+          font-size: 10px;
+          border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -706,26 +630,33 @@ onMounted(() => {
   }
 }
 
+.table-wrapper {
+  flex: 1;
+  overflow: hidden;
+}
+
 // 表格样式
 :deep(.el-table) {
   background: transparent;
   border-radius: 12px;
   overflow: hidden;
+  flex: 1;
 
   .el-table__header-wrapper {
     th {
       background: linear-gradient(135deg, #f0f9ff, #e0f2fe) !important;
       color: #1e293b;
       font-weight: 600;
-      font-size: 13px;
-      padding: 16px 12px;
+      font-size: 12px;
+      padding: 10px 8px;
     }
   }
 
   .el-table__body-wrapper {
     td {
-      padding: 16px 12px;
+      padding: 10px 8px;
       color: #475569;
+      font-size: 13px;
     }
 
     tr:hover > td {
@@ -963,9 +894,10 @@ onMounted(() => {
 .table-pagination {
   display: flex;
   justify-content: flex-end;
-  margin-top: 24px;
-  padding-top: 20px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
 }
 
 // 详情弹窗
@@ -1051,6 +983,74 @@ onMounted(() => {
         }
       }
     }
+  }
+}
+
+// 响应式
+@media (max-width: 1200px) {
+  .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .record-manage {
+    padding: 16px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .header-actions {
+      width: 100%;
+      flex-direction: column;
+      align-items: stretch;
+
+      .el-input,
+      .el-date-picker {
+        width: 100% !important;
+      }
+    }
+  }
+
+  .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .data-table-container {
+    padding: 12px;
+  }
+
+  .table-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    .table-tabs {
+      flex-wrap: wrap;
+    }
+  }
+
+  :deep(.el-table) {
+    .el-table__header-wrapper th,
+    .el-table__body-wrapper td {
+      padding: 8px 4px;
+      font-size: 12px;
+    }
+  }
+
+  .card-view {
+    grid-template-columns: 1fr;
+  }
+
+  .table-pagination {
+    justify-content: center;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
   }
 }
 </style>

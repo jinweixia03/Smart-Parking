@@ -29,33 +29,18 @@ public class ParkingRecord implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime entryTime;
 
-    private String entryGate;
-
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime exitTime;
 
-    private String exitGate;
-
-    private Integer parkingMinutes;
-
     private BigDecimal feeAmount;
-
-    private BigDecimal payableAmount;
-
-    private BigDecimal paidAmount;
 
     private Integer payStatus;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime payTime;
 
-    private String payMethod;
-
-    private Integer status;
-
     // 非数据库字段
+    // parkingMinutes 通过 entryTime 和 exitTime 计算获得
+    // status 通过 payStatus 推断：0=停车中，1或2=已完成
     private String spaceCode;
-    private String areaCode;
-    private String areaName;
-    private String username;
 }

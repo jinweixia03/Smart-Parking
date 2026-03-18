@@ -19,8 +19,6 @@
         <result column="pay_method" property="payMethod"/>
         <result column="status" property="status"/>
         <result column="space_code" property="spaceCode"/>
-        <result column="area_code" property="areaCode"/>
-        <result column="area_name" property="areaName"/>
     </resultMap>
 
     <select id="selectPageWithDetail" resultMap="BaseResultMap">
@@ -29,10 +27,9 @@
                r.exit_time, r.exit_gate,
                r.parking_minutes, r.fee_amount, r.payable_amount, r.paid_amount,
                r.pay_status, r.pay_time, r.pay_method, r.status,
-               s.space_code, a.area_code, a.area_name
+               s.space_code
         FROM parking_record r
         INNER JOIN parking_space s ON r.space_id = s.space_id
-        INNER JOIN parking_area a ON s.area_id = a.area_id
         <where>
             <if test="plateNumber != null and plateNumber != ''">
                 AND r.plate_number LIKE CONCAT('%', #{plateNumber}, '%')
@@ -71,13 +68,10 @@
 
     <select id="selectAreaStats" resultType="java.util.HashMap">
         SELECT
-            a.area_name as areaName,
+            '全部区域' as areaName,
             COUNT(*) as count,
-            COALESCE(SUM(r.paid_amount), 0) as revenue
-        FROM parking_record r
-        LEFT JOIN parking_space s ON r.space_id = s.space_id
-        LEFT JOIN parking_area a ON s.area_id = a.area_id
-        WHERE DATE(r.entry_time) = CURDATE()
-        GROUP BY a.area_id
+            COALESCE(SUM(paid_amount), 0) as revenue
+        FROM parking_record
+        WHERE DATE(entry_time) = CURDATE()
     </select>
 </mapper>

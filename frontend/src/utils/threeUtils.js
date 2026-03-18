@@ -604,10 +604,10 @@ export function createStatusLight(color) {
 // ==================== 标准轿车模型 ====================
 // 标准轿车尺寸：长4.6m × 宽1.8m × 高1.4m
 
-export function createCar(spaceType) {
+export function createCar(areaType) {
   const carGroup = new THREE.Group()
 
-  const isLarge = spaceType === '残疾人车位'
+  const isLarge = areaType === '大型车'
   const baseScale = isLarge ? 1.1 : 1.0
 
   // 车身颜色选择

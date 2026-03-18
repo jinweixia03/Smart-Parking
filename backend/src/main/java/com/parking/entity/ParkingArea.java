@@ -23,9 +23,10 @@ public class ParkingArea implements Serializable {
 
     private String areaName;
 
+    private String areaType;
+
+    // 非数据库字段（从space表实时统计）
     private Integer totalSpaces;
-
     private Integer availableSpaces;
-
-    private Integer status;
+    private Integer occupiedSpaces;
 }

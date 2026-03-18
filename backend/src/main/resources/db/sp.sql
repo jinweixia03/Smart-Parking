@@ -70,12 +70,10 @@ CREATE TABLE `parking_area`  (
   `area_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '区域ID',
   `area_code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '区域编号',
   `area_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '区域名称',
-  `total_spaces` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '总车位数',
-  `available_spaces` int UNSIGNED NOT NULL DEFAULT 0 COMMENT '可用车位数',
-  `status` tinyint NOT NULL DEFAULT 1 COMMENT '状态: 0-禁用 1-启用',
+  `area_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '普通' COMMENT '区域类型: 普通/VIP/充电桩/大型车/临时专用/访客专用',
   PRIMARY KEY (`area_id`) USING BTREE,
   UNIQUE INDEX `uk_area_code`(`area_code` ASC) USING BTREE,
-  CONSTRAINT `chk_available` CHECK (`available_spaces` <= `total_spaces`)
+  CONSTRAINT `chk_area_type` CHECK (`area_type` in (_utf8mb4'普通',_utf8mb4'VIP',_utf8mb4'充电桩',_utf8mb4'大型车',_utf8mb4'临时专用',_utf8mb4'访客专用'))
 ) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '停车区域表' ROW_FORMAT = Dynamic;
 
 -- ==================== 第二批：创建依赖 parking_area 的表 ====================
@@ -85,21 +83,15 @@ CREATE TABLE `parking_area`  (
 -- ----------------------------
 CREATE TABLE `parking_space`  (
   `space_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '车位ID',
-  `area_id` bigint UNSIGNED NOT NULL COMMENT '所属区域ID',
   `floor` tinyint UNSIGNED NOT NULL DEFAULT 1 COMMENT '楼层: 1-一层 2-二层',
   `space_code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '车位编号',
-  `space_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '普通' COMMENT '车位类型',
   `status` tinyint NOT NULL DEFAULT 0 COMMENT '状态: 0-空闲 1-占用',
   `current_plate` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '当前停放车牌',
-  `entry_time` datetime NULL DEFAULT NULL COMMENT '入场时间',
   PRIMARY KEY (`space_id`) USING BTREE,
-  UNIQUE INDEX `uk_area_space`(`area_id` ASC, `space_code` ASC) USING BTREE,
-  INDEX `idx_space_area`(`area_id` ASC) USING BTREE,
+  UNIQUE INDEX `uk_space_code`(`space_code` ASC) USING BTREE,
   INDEX `idx_space_status`(`status` ASC) USING BTREE,
-  CONSTRAINT `fk_space_area` FOREIGN KEY (`area_id`) REFERENCES `parking_area` (`area_id`) ON DELETE CASCADE ON UPDATE RESTRICT,
-  CONSTRAINT `chk_space_status` CHECK (`status` in (0,1)),
-  CONSTRAINT `chk_space_type` CHECK (`space_type` in (_utf8mb4'普通',_utf8mb4'VIP',_utf8mb4'充电桩',_utf8mb4'大型车',_utf8mb4'临时专用',_utf8mb4'访客专用'))
-) ENGINE = InnoDB AUTO_INCREMENT = 91 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '停车位表' ROW_FORMAT = Dynamic;
+  CONSTRAINT `chk_space_status` CHECK (`status` in (0,1))
+) ENGINE = InnoDB AUTO_INCREMENT = 509 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '停车位表' ROW_FORMAT = Dynamic;
 
 -- ==================== 第三批：创建依赖 sys_user 和 parking_space 的表 ====================
 
@@ -109,53 +101,94 @@ CREATE TABLE `parking_space`  (
 CREATE TABLE `parking_record`  (
   `record_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '记录ID',
   `plate_number` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '车牌号',
-  `space_id` bigint UNSIGNED NULL DEFAULT NULL COMMENT '车位ID',
+  `space_id` bigint UNSIGNED NOT NULL COMMENT '车位ID',
   `entry_time` datetime NOT NULL COMMENT '入场时间',
-  `entry_gate` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '入口',
   `exit_time` datetime NULL DEFAULT NULL COMMENT '出场时间',
-  `exit_gate` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '出口',
-  `parking_minutes` int UNSIGNED NULL DEFAULT NULL COMMENT '停车时长(分钟)',
   `fee_amount` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '应收费用',
-  `payable_amount` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '应付金额',
-  `paid_amount` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '实付金额',
-  `pay_status` tinyint NOT NULL DEFAULT 0 COMMENT '支付状态: 0-未支付 1-已支付 2-免费',
+  `pay_status` tinyint NOT NULL DEFAULT 0 COMMENT '支付状态: 0-未支付(停车中) 1-已支付(已完成) 2-免费(已完成)',
   `pay_time` datetime NULL DEFAULT NULL COMMENT '支付时间',
-  `pay_method` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '支付方式',
-  `status` tinyint NOT NULL DEFAULT 0 COMMENT '状态: 0-停车中 1-已完成',
   PRIMARY KEY (`record_id`) USING BTREE,
   INDEX `idx_record_space`(`space_id` ASC) USING BTREE,
   INDEX `idx_record_plate`(`plate_number` ASC) USING BTREE,
   INDEX `idx_record_entry`(`entry_time` ASC) USING BTREE,
-  INDEX `idx_record_status`(`status` ASC) USING BTREE,
   INDEX `idx_record_pay`(`pay_status` ASC) USING BTREE,
-  INDEX `idx_record_status_entry`(`status`, `entry_time` DESC) USING BTREE,
   INDEX `idx_record_pay_entry`(`pay_status`, `entry_time` DESC) USING BTREE,
   INDEX `idx_record_plate_entry`(`plate_number`, `entry_time` DESC) USING BTREE,
-  CONSTRAINT `fk_record_space` FOREIGN KEY (`space_id`) REFERENCES `parking_space` (`space_id`) ON DELETE SET NULL ON UPDATE RESTRICT,
+  CONSTRAINT `fk_record_space` FOREIGN KEY (`space_id`) REFERENCES `parking_space` (`space_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `chk_pay_status` CHECK (`pay_status` in (0,1,2)),
-  CONSTRAINT `chk_record_status` CHECK (`status` in (0,1)),
   CONSTRAINT `chk_time_valid` CHECK ((`exit_time` is null) or (`exit_time` >= `entry_time`))
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '停车记录表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1001 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '停车记录表' ROW_FORMAT = Dynamic;
 
--- ==================== 创建触发器 ====================
+-- ==================== 创建函数：计算停车费用 ====================
+-- 收费规则（标准收费-日间）：
+--   - 免费时长: 15分钟
+--   - 首小时费用: 5元
+--   - 额外每小时: 3元
+--   - 24小时封顶: 50元
+-- ====================
 
-delimiter ;;
+DELIMITER ;;
 
-CREATE TRIGGER `trg_space_insert` AFTER INSERT ON `parking_space` FOR EACH ROW BEGIN
-    UPDATE parking_area SET total_spaces = total_spaces + 1 WHERE area_id = NEW.area_id;
-    IF NEW.status = 0 THEN
-        UPDATE parking_area SET available_spaces = available_spaces + 1 WHERE area_id = NEW.area_id;
+CREATE FUNCTION IF NOT EXISTS `calculate_parking_fee`(
+    p_entry_time DATETIME,
+    p_exit_time DATETIME
+) RETURNS DECIMAL(10,2)
+DETERMINISTIC
+BEGIN
+    DECLARE v_minutes INT;
+    DECLARE v_hours INT;
+    DECLARE v_days INT;
+    DECLARE v_remaining_hours INT;
+    DECLARE v_fee DECIMAL(10,2);
+    DECLARE v_daily_fee DECIMAL(10,2);
+    DECLARE v_remaining_fee DECIMAL(10,2);
+
+    -- 免费分钟数
+    DECLARE FREE_MINUTES INT DEFAULT 15;
+    -- 首小时费用
+    DECLARE FIRST_HOUR_FEE DECIMAL(10,2) DEFAULT 5.00;
+    -- 额外每小时费用
+    DECLARE EXTRA_HOUR_FEE DECIMAL(10,2) DEFAULT 3.00;
+    -- 24小时封顶
+    DECLARE DAILY_MAX_FEE DECIMAL(10,2) DEFAULT 50.00;
+    -- 每小时分钟数
+    DECLARE MINUTES_PER_HOUR INT DEFAULT 60;
+    -- 每天小时数
+    DECLARE HOURS_PER_DAY INT DEFAULT 24;
+
+    -- 计算停车分钟数
+    SET v_minutes = TIMESTAMPDIFF(MINUTE, p_entry_time, p_exit_time);
+
+    -- 免费时长内
+    IF v_minutes <= FREE_MINUTES THEN
+        RETURN 0.00;
     END IF;
+
+    -- 计算小时数，不足1小时按1小时算
+    SET v_hours = CEIL(v_minutes / MINUTES_PER_HOUR);
+
+    -- 计算天数和剩余小时
+    SET v_days = v_hours / HOURS_PER_DAY;
+    SET v_remaining_hours = v_hours % HOURS_PER_DAY;
+
+    -- 计算基础费用
+    IF v_remaining_hours <= 1 THEN
+        SET v_remaining_fee = FIRST_HOUR_FEE;
+    ELSE
+        SET v_remaining_fee = FIRST_HOUR_FEE + (EXTRA_HOUR_FEE * (v_remaining_hours - 1));
+    END IF;
+
+    -- 应用封顶规则
+    IF v_remaining_fee > DAILY_MAX_FEE THEN
+        SET v_remaining_fee = DAILY_MAX_FEE;
+    END IF;
+
+    -- 总费用 = 完整天数费用 + 剩余时间费用
+    SET v_fee = (v_days * DAILY_MAX_FEE) + v_remaining_fee;
+
+    RETURN v_fee;
 END;;
 
-CREATE TRIGGER `trg_space_change` AFTER UPDATE ON `parking_space` FOR EACH ROW BEGIN
-    IF OLD.status != NEW.status THEN
-        IF NEW.status = 0 THEN
-            UPDATE parking_area SET available_spaces = available_spaces + 1 WHERE area_id = NEW.area_id;
-        ELSE
-            UPDATE parking_area SET available_spaces = available_spaces - 1 WHERE area_id = NEW.area_id;
-        END IF;
-    END IF;
-END;;
+DELIMITER ;
 
-delimiter ;
+-- ==================== 创建触发器（已移除，统计从space表实时计算） ====================

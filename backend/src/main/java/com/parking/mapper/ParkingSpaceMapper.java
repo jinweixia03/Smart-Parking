@@ -15,19 +15,18 @@ import java.util.List;
 @Mapper
 public interface ParkingSpaceMapper extends BaseMapper<ParkingSpace> {
 
-    @Select("SELECT s.*, a.area_name, a.area_code FROM parking_space s " +
-            "LEFT JOIN parking_area a ON s.area_id = a.area_id " +
-            "WHERE s.status = 0")
+    @Select("SELECT * FROM parking_space WHERE status = 0")
     List<ParkingSpace> selectAllAvailable();
 
-    @Select("SELECT s.*, a.area_name, a.area_code FROM parking_space s " +
-            "LEFT JOIN parking_area a ON s.area_id = a.area_id " +
-            "WHERE s.area_id = #{areaId}")
-    List<ParkingSpace> selectByAreaId(Long areaId);
+    /**
+     * 查询所有车位并关联区域信息
+     */
+    @Select("SELECT s.*, a.area_code, a.area_name, a.area_type FROM parking_space s " +
+            "LEFT JOIN parking_area a ON s.space_code LIKE CONCAT(a.area_code, '%') " +
+            "ORDER BY s.floor, s.space_id")
+    List<ParkingSpace> selectAllWithArea();
 
-    @Select("SELECT s.*, a.area_name, a.area_code FROM parking_space s " +
-            "LEFT JOIN parking_area a ON s.area_id = a.area_id " +
-            "WHERE s.current_plate = #{plateNumber} AND s.status = 1 LIMIT 1")
+    @Select("SELECT * FROM parking_space WHERE current_plate = #{plateNumber} AND status = 1 LIMIT 1")
     ParkingSpace selectByCurrentPlate(String plateNumber);
 
     @Select("SELECT COUNT(*) FROM parking_space WHERE status = #{status}")

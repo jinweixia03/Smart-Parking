@@ -205,8 +205,8 @@ function mergeGeometries(group) {
 function getSpaceColor(spaceData) {
   if (!spaceData) return COLORS.spaceFree
 
-  const isVip = spaceData.spaceType === 'VIP'
-  const isDisabled = spaceData.spaceType === '残疾人车位'
+  const isVip = spaceData.areaType === 'VIP'
+  const isDisabled = spaceData.areaType === '残疾人车位'
   const isOccupied = spaceData.status === 1
 
   if (isOccupied) return COLORS.spaceOccupied

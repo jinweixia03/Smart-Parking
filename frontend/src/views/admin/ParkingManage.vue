@@ -18,7 +18,8 @@
         </div>
       </template>
 
-      <el-table :data="records" v-loading="loading" stripe>
+      <div class="table-wrapper">
+        <el-table :data="records" v-loading="loading" stripe>
         <el-table-column prop="plateNumber" label="车牌号" width="120">
           <template #default="{ row }">
             <div class="plate-number">
@@ -63,6 +64,7 @@
           </template>
         </el-table-column>
       </el-table>
+      </div>
 
       <el-pagination
         class="pagination"
@@ -263,6 +265,11 @@ onMounted(fetchRecords)
     }
   }
 
+  .table-wrapper {
+    flex: 1;
+    overflow: hidden;
+  }
+
   .plate-number {
     display: flex;
     align-items: center;
@@ -284,13 +291,8 @@ onMounted(fetchRecords)
     color: #94a3b8;
   }
 
-  .el-table {
-    flex: 1;
-    overflow: auto;
-  }
-
   .pagination {
-    margin-top: 20px;
+    margin-top: 16px;
     justify-content: flex-end;
     flex-shrink: 0;
   }
@@ -330,16 +332,42 @@ onMounted(fetchRecords)
 }
 
 // 响应式
+@media (max-width: 1200px) {
+  .parking-manage {
+    :deep(.el-table) {
+      .el-table__header-wrapper th,
+      .el-table__body-wrapper td {
+        padding: 8px 6px;
+        font-size: 13px;
+      }
+    }
+  }
+}
+
 @media (max-width: 768px) {
   .parking-manage {
     padding: 16px;
 
     .card-header {
       flex-direction: column;
-      align-items: stretch;
+      align-items: flex-start;
 
       .el-input {
         width: 100% !important;
+      }
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    :deep(.el-table) {
+      min-width: 700px;
+
+      .el-table__header-wrapper th,
+      .el-table__body-wrapper td {
+        padding: 6px 4px;
+        font-size: 12px;
       }
     }
 
@@ -348,5 +376,24 @@ onMounted(fetchRecords)
     }
   }
 
+  .detail-dialog {
+    width: 95% !important;
+
+    :deep(.el-dialog__body) {
+      padding: 16px;
+    }
+
+    .detail-content {
+      h4 {
+        font-size: 14px;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+      }
+    }
+
+    .current-info {
+      margin-bottom: 16px;
+    }
+  }
 }
 </style>

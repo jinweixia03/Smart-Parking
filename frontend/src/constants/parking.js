@@ -1,16 +1,17 @@
 // ==================== 停车场常量配置 ====================
 
-// 楼层配置
+// 楼层配置 - 与数据库一致（1=一层, 2=二层）
 export const FLOORS = [
-  { code: 'F1', name: '表面层', level: 0 },
-  { code: 'B1', name: '地下一层', level: -1 }
+  { code: 1, name: '一层', level: 0 },
+  { code: 2, name: '二层', level: 1 }
 ]
 
-// 车位类型
+// 车位类型 - 与数据库 parking_area.area_type 一致
 export const SPACE_TYPES = {
-  NORMAL: '普通车位',
+  NORMAL: '普通',
+  CHARGING: '充电桩',
   VIP: 'VIP',
-  DISABLED: '残疾人车位'
+  EAST: '东向'
 }
 
 // 车位状态

@@ -21,22 +21,17 @@ public class ParkingSpace implements Serializable {
     @TableId(value = "space_id", type = IdType.AUTO)
     private Long spaceId;
 
-    private Long areaId;
-
     private Integer floor;
 
     private String spaceCode;
-
-    private String spaceType;
 
     private Integer status;
 
     private String currentPlate;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime entryTime;
-
     // 非数据库字段
+    // entryTime 从 parking_record 表中查询获得
     private String areaName;
     private String areaCode;
+    private String areaType;  // 关联区域的类型
 }

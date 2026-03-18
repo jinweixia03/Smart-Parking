@@ -42,12 +42,12 @@ public class SimulationController {
             try {
                 if ("entry".equals(request.getEventType())) {
                     // 仿真入场
-                    recordService.entry(plateNumber, "A1");
+                    recordService.entry(plateNumber);
                     result.put("eventType", "entry");
                     result.put("message", "入场成功");
                 } else {
                     // 仿真出场
-                    Map<String, Object> exitResult = recordService.exit(plateNumber, "A1");
+                    Map<String, Object> exitResult = recordService.exit(plateNumber);
                     result.put("eventType", "exit");
                     result.put("fee", exitResult.get("fee"));
                     result.put("message", "出场成功");

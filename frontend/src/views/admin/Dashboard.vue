@@ -1,20 +1,18 @@
 <template>
   <div class="dashboard">
-    <!-- 页面标题 -->
-    <div class="page-header">
-      <div class="header-content">
-        <h1 class="page-title">数据大屏</h1>
-        <p class="page-subtitle">实时监控停车场运营数据</p>
-      </div>
-      <div class="header-actions">
-        <el-button type="primary" @click="refreshData" :loading="refreshing">
-          <el-icon><Refresh /></el-icon>
-          刷新
-        </el-button>
-      </div>
-    </div>
+    <el-card>
+      <template #header>
+        <div class="card-header">
+          <span>数据大屏</span>
+          <el-button type="primary" @click="refreshData" :loading="refreshing">
+            <el-icon><Refresh /></el-icon>
+            刷新
+          </el-button>
+        </div>
+      </template>
 
-    <!-- 统计卡片 -->
+      <div class="dashboard-content">
+      <!-- 统计卡片 -->
     <div class="stats-grid">
       <StatCard
         v-for="(stat, index) in stats"
@@ -84,6 +82,8 @@
         </div>
       </div>
     </div>
+      </div>
+    </el-card>
   </div>
 </template>
 
@@ -207,34 +207,43 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .dashboard {
+  padding: 24px;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  padding: 16px 24px;
-  gap: 12px;
   box-sizing: border-box;
-}
 
-// 页面标题
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-shrink: 0;
+  :deep(.el-card) {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 
-  .header-content {
-    .page-title {
-      font-size: 22px;
-      font-weight: 700;
+    .el-card__body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 16px;
+    }
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    span {
+      font-size: 18px;
+      font-weight: 600;
       color: #1e293b;
-      margin: 0;
     }
+  }
 
-    .page-subtitle {
-      font-size: 13px;
-      color: #64748b;
-      margin: 4px 0 0;
-    }
+  .dashboard-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
 }
 
@@ -429,8 +438,96 @@ onUnmounted(() => {
 }
 
 @media (max-width: 768px) {
+  .dashboard {
+    padding: 16px;
+
+    :deep(.el-card__body) {
+      padding: 12px;
+    }
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .charts-section {
+    gap: 8px;
+
+    .chart-card {
+      padding: 8px;
+
+      .chart-header h3 {
+        font-size: 13px;
+      }
+    }
+  }
+
+  .bottom-section {
+    gap: 8px;
+    min-height: auto;
+
+    .quick-actions-card,
+    .recent-records-card {
+      padding: 10px;
+
+      h3 {
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+    }
+
+    .quick-actions-card .actions-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+
+      .action-item {
+        padding: 6px;
+
+        .action-icon {
+          width: 32px;
+          height: 32px;
+          font-size: 16px;
+        }
+
+        .action-label {
+          font-size: 11px;
+        }
+      }
+    }
+
+    .recent-records-card .records-list .record-item {
+      padding: 5px 8px;
+
+      .plate-badge {
+        padding: 3px 8px;
+        font-size: 11px;
+        min-width: 60px;
+      }
+
+      .record-info {
+        gap: 6px;
+      }
+
+      .record-time {
+        font-size: 11px;
+      }
+
+      .fee-amount {
+        font-size: 12px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
   }
 
   .bottom-section .quick-actions-card .actions-grid {

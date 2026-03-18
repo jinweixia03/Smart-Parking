@@ -24,7 +24,7 @@ public class ParkingSpaceServiceImpl extends ServiceImpl<ParkingSpaceMapper, Par
     }
 
     @Override
-    public List<ParkingSpace> listByAreaId(Long areaId) {
-        return spaceMapper.selectByAreaId(areaId);
+    public List<ParkingSpace> listAllWithArea() {
+        return spaceMapper.selectAllWithArea();
     }
 }

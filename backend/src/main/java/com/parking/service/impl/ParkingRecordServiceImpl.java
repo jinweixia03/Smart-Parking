@@ -117,15 +117,7 @@ import java.util.Map;
 public class ParkingRecordServiceImpl extends ServiceImpl<ParkingRecordMapper, ParkingRecord> implements ParkingRecordService {
 
     /**
-     * 停车记录状态：0-停车中
-     */
-    private static final int STATUS_PARKING = 0;
-    /**
-     * 停车记录状态：1-已完成
-     */
-    private static final int STATUS_COMPLETED = 1;
-
-    /**
+     * 支付状态：0-未支付（停车中）
      * 支付状态：0-未支付
      */
     private static final int PAY_STATUS_UNPAID = 0;
@@ -162,8 +154,8 @@ public class ParkingRecordServiceImpl extends ServiceImpl<ParkingRecordMapper, P
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ParkingRecord entry(String plateNumber, String gate) {
-        log.info("车辆入场: plateNumber={}, gate={}", plateNumber, gate);
+    public ParkingRecord entry(String plateNumber) {
+        log.info("车辆入场: plateNumber={}", plateNumber);
 
         // 校验车牌号
         if (!StringUtils.hasText(plateNumber)) {
@@ -178,7 +170,7 @@ public class ParkingRecordServiceImpl extends ServiceImpl<ParkingRecordMapper, P
         }
 
         // 2. 创建新记录
-        ParkingRecord record = buildEntryRecord(plateNumber, gate);
+        ParkingRecord record = buildEntryRecord(plateNumber);
 
         // 3. 分配车位
         ParkingSpace space = allocateSpace();
@@ -198,8 +190,8 @@ public class ParkingRecordServiceImpl extends ServiceImpl<ParkingRecordMapper, P
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Map<String, Object> exit(String plateNumber, String gate) {
-        log.info("车辆出场: plateNumber={}, gate={}", plateNumber, gate);
+    public Map<String, Object> exit(String plateNumber) {
+        log.info("车辆出场: plateNumber={}", plateNumber);
 
         if (!StringUtils.hasText(plateNumber)) {
             throw new IllegalArgumentException("车牌号不能为空");
@@ -219,7 +211,7 @@ public class ParkingRecordServiceImpl extends ServiceImpl<ParkingRecordMapper, P
 
         // 3. 更新出场记录
         boolean isFree = fee.compareTo(BigDecimal.ZERO) == 0;
-        updateRecordForExit(record, exitTime, gate, (int) minutes, fee, isFree);
+        updateRecordForExit(record, exitTime, (int) minutes, fee, isFree);
         recordMapper.updateById(record);
 
         // 4. 释放车位
@@ -236,8 +228,8 @@ public class ParkingRecordServiceImpl extends ServiceImpl<ParkingRecordMapper, P
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void pay(Long recordId, String payMethod) {
-        log.info("停车支付: recordId={}, payMethod={}", recordId, payMethod);
+    public void pay(Long recordId) {
+        log.info("停车支付: recordId={}", recordId);
 
         if (recordId == null) {
             throw new IllegalArgumentException("记录ID不能为空");
@@ -256,11 +248,9 @@ public class ParkingRecordServiceImpl extends ServiceImpl<ParkingRecordMapper, P
         // 更新支付信息
         record.setPayStatus(PAY_STATUS_PAID);
         record.setPayTime(LocalDateTime.now());
-        record.setPaidAmount(record.getPayableAmount());
-        record.setPayMethod(payMethod);
 
         recordMapper.updateById(record);
-        log.info("支付成功: recordId={}, amount={}", recordId, record.getPaidAmount());
+        log.info("支付成功: recordId={}, amount={}", recordId, record.getFeeAmount());
     }
 
     @Override
@@ -372,12 +362,10 @@ public class ParkingRecordServiceImpl extends ServiceImpl<ParkingRecordMapper, P
     /**
      * 构建入场记录
      */
-    private ParkingRecord buildEntryRecord(String plateNumber, String gate) {
+    private ParkingRecord buildEntryRecord(String plateNumber) {
         ParkingRecord record = new ParkingRecord();
         record.setPlateNumber(plateNumber);
         record.setEntryTime(LocalDateTime.now());
-        record.setEntryGate(gate);
-        record.setStatus(STATUS_PARKING);
         record.setPayStatus(PAY_STATUS_UNPAID);
         return record;
     }
@@ -402,7 +390,6 @@ public class ParkingRecordServiceImpl extends ServiceImpl<ParkingRecordMapper, P
         record.setSpaceId(space.getSpaceId());
         space.setStatus(SPACE_STATUS_OCCUPIED);
         space.setCurrentPlate(plateNumber);
-        space.setEntryTime(LocalDateTime.now());
         spaceMapper.updateById(space);
         log.debug("分配车位: spaceId={}, spaceCode={}", space.getSpaceId(), space.getSpaceCode());
     }
@@ -415,7 +402,6 @@ public class ParkingRecordServiceImpl extends ServiceImpl<ParkingRecordMapper, P
         if (space != null) {
             space.setStatus(SPACE_STATUS_FREE);
             space.setCurrentPlate(null);
-            space.setEntryTime(null);
             spaceMapper.updateById(space);
             log.debug("释放车位: spaceId={}", spaceId);
         }
@@ -487,18 +473,13 @@ public class ParkingRecordServiceImpl extends ServiceImpl<ParkingRecordMapper, P
      * 更新记录为出场状态
      */
     private void updateRecordForExit(ParkingRecord record, LocalDateTime exitTime,
-                                     String gate, int minutes, BigDecimal fee, boolean isFree) {
+                                     int minutes, BigDecimal fee, boolean isFree) {
         record.setExitTime(exitTime);
-        record.setExitGate(gate);
-        record.setParkingMinutes(minutes);
         record.setFeeAmount(fee);
-        record.setPayableAmount(fee);
-        record.setStatus(STATUS_COMPLETED);
 
         if (isFree) {
             record.setPayStatus(PAY_STATUS_FREE);
             record.setPayTime(exitTime);
-            record.setPaidAmount(BigDecimal.ZERO);
         }
     }
 

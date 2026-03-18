@@ -309,7 +309,9 @@ const resetSimulation = () => {
 
 <style scoped lang="scss">
 .simulation-page {
-  padding-bottom: 40px;
+  min-height: 100%;
+  padding: 24px;
+  box-sizing: border-box;
 }
 
 .page-header {

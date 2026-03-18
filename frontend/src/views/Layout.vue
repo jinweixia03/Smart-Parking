@@ -186,7 +186,6 @@ const menuItems = computed(() => {
       { path: '/dashboard', title: '数据大屏', icon: 'Odometer' },
       { path: '/records', title: '停车记录', icon: 'Document' },
       { path: '/spaces', title: '车位管理', icon: 'MapLocation' },
-      { path: '/users', title: '用户管理', icon: 'User' },
       { path: '/simulation', title: '仿真系统', icon: 'VideoCamera' },
       { path: '/settings', title: '系统设置', icon: 'Setting' }
     ]
@@ -1056,11 +1055,23 @@ $border-soft: rgba(59, 130, 246, 0.08);
 // ============================================
 .page-container {
   flex: 1;
-  padding: 20px 24px;
-  overflow-y: auto;
+  position: relative;
+  overflow: hidden;
   background:
     radial-gradient(ellipse at 0% 0%, rgba(37, 99, 235, 0.03) 0%, transparent 50%),
     radial-gradient(ellipse at 100% 100%, rgba(6, 182, 212, 0.02) 0%, transparent 50%);
+
+  // 默认内容区域带padding
+  &:not(:has(> .space-manage-2-5d)) {
+    padding: 20px 24px;
+    overflow-y: auto;
+  }
+
+  // 3D车位管理页面全屏显示，无滚动
+  &:has(> .space-manage-2-5d) {
+    padding: 0;
+    overflow: hidden;
+  }
 }
 
 // ============================================

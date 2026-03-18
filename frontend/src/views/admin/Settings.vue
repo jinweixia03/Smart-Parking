@@ -96,21 +96,66 @@ const saveSystemConfig = () => {
   padding: 24px;
   height: 100%;
   box-sizing: border-box;
-  overflow: auto;
+  overflow: hidden;
 
-  :deep(.el-card) {
-    margin-bottom: 20px;
+  .el-row {
+    height: 100%;
 
-    .el-card__header {
-      span {
-        font-size: 16px;
-        font-weight: 600;
-        color: #1e293b;
+    .el-col {
+      height: 100%;
+
+      .el-card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+
+        :deep(.el-card__header) {
+          span {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+          }
+        }
+
+        :deep(.el-card__body) {
+          flex: 1;
+          overflow-y: auto;
+          padding: 20px;
+        }
+      }
+    }
+  }
+
+  :deep(.el-form) {
+    .el-form-item {
+      margin-bottom: 20px;
+
+      .el-form-item__label {
+        font-weight: 500;
       }
     }
   }
 
   // 响应式
+  @media (max-width: 992px) {
+    .el-row {
+      overflow-y: auto;
+
+      .el-col {
+        height: auto;
+        margin-bottom: 16px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        .el-card {
+          height: auto;
+        }
+      }
+    }
+  }
+
   @media (max-width: 768px) {
     padding: 16px;
 
@@ -127,6 +172,12 @@ const saveSystemConfig = () => {
 
         .el-form-item__content {
           margin-left: 0 !important;
+
+          .el-input,
+          .el-input-number,
+          .el-slider {
+            width: 100% !important;
+          }
         }
       }
     }

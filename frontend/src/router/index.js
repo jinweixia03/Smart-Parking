@@ -47,12 +47,6 @@ const routes = [
         meta: { title: '车位管理', icon: 'MapLocation', adminOnly: true }
       },
       {
-        path: '/users',
-        name: 'Users',
-        component: () => import('@/views/admin/UserManage.vue'),
-        meta: { title: '用户管理', icon: 'User', adminOnly: true }
-      },
-      {
         path: '/simulation',
         name: 'Simulation',
         component: () => import('@/views/admin/Simulation.vue'),

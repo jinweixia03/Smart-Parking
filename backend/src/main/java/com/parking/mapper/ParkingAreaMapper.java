@@ -13,7 +13,7 @@ import java.util.List;
 @Mapper
 public interface ParkingAreaMapper extends BaseMapper<ParkingArea> {
 
-    @Select("SELECT * FROM parking_area WHERE status = 1 ORDER BY area_code")
+    @Select("SELECT * FROM parking_area ORDER BY area_code")
     List<ParkingArea> selectAllActive();
 
     @Select("SELECT * FROM parking_area WHERE area_code = #{areaCode} LIMIT 1")

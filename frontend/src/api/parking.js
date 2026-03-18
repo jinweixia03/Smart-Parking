@@ -12,16 +12,16 @@ export const getChartData = (type, params) => {
   return request.get('/parking/chart', { params: { type, ...params } })
 }
 
-export const entry = (plateNumber, gate = 'A1') => {
-  return request.post('/parking/entry', null, { params: { plateNumber, gate } })
+export const entry = (plateNumber) => {
+  return request.post('/parking/entry', null, { params: { plateNumber } })
 }
 
-export const exit = (plateNumber, gate = 'A1') => {
-  return request.post('/parking/exit', null, { params: { plateNumber, gate } })
+export const exit = (plateNumber) => {
+  return request.post('/parking/exit', null, { params: { plateNumber } })
 }
 
-export const pay = (recordId, payMethod = '微信支付') => {
-  return request.post(`/parking/pay/${recordId}`, null, { params: { payMethod } })
+export const pay = (recordId) => {
+  return request.post(`/parking/pay/${recordId}`)
 }
 
 export const getRecords = (params) => {
@@ -59,8 +59,7 @@ export const getVehicleDetail = (plateNumber) => {
 /**
  * 支付停车费用
  * @param {number} recordId - 记录ID
- * @param {string} payMethod - 支付方式
  */
-export const payRecord = (recordId, payMethod = '微信支付') => {
-  return request.post(`/parking/pay/${recordId}`, null, { params: { payMethod } })
+export const payRecord = (recordId) => {
+  return request.post(`/parking/pay/${recordId}`)
 }
