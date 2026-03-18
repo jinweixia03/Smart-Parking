@@ -16,12 +16,12 @@ public interface ParkingRecordService extends IService<ParkingRecord> {
     /**
      * 车辆入场
      */
-    ParkingRecord entry(String plateNumber, String imagePath, String gate);
+    ParkingRecord entry(String plateNumber, String gate);
 
     /**
      * 车辆出场
      */
-    Map<String, Object> exit(String plateNumber, String imagePath, String gate);
+    Map<String, Object> exit(String plateNumber, String gate);
 
     /**
      * 支付停车费
