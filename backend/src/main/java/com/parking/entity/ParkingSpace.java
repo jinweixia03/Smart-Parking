@@ -23,6 +23,8 @@ public class ParkingSpace implements Serializable {
 
     private Long areaId;
 
+    private Integer floor;
+
     private String spaceCode;
 
     private String spaceType;

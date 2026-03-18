@@ -1,0 +1,441 @@
+// ============================================
+// 2.5D 数字化停车场主题 - 冰川蓝风格
+// Digital Parking 2.5D Theme - Glacier Blue Style
+// ============================================
+
+// 主色调 - 冰川蓝系
+$color-primary: #2563eb;
+$color-primary-light: #3b82f6;
+$color-primary-lighter: #60a5fa;
+$color-primary-soft: #93c5fd;
+$color-primary-pale: #dbeafe;
+$color-secondary: #06b6d4;
+$color-accent: #f59e0b;
+
+// 状态色
+$color-success: #10b981;
+$color-warning: #f59e0b;
+$color-danger: #ef4444;
+$color-info: #3b82f6;
+
+// 浅色背景系 - 冰川蓝调
+$bg-primary: #f0f9ff;
+$bg-secondary: #e0f2fe;
+$bg-tertiary: #f1f5f9;
+$bg-card: rgba(255, 255, 255, 0.85);
+$bg-glass: rgba(255, 255, 255, 0.7);
+
+// 深色背景（用于对比区域）
+$bg-dark: #0f172a;
+$bg-dark-card: rgba(15, 23, 42, 0.9);
+
+// 文字色
+$text-primary: #1e293b;
+$text-secondary: #334155;
+$text-tertiary: #475569;
+$text-muted: #64748b;
+$text-white: #f8fafc;
+
+// 边框
+$border-color: rgba(59, 130, 246, 0.2);
+$border-glow: rgba(59, 130, 246, 0.4);
+$border-light: rgba(59, 130, 246, 0.1);
+
+// 阴影
+$shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+$shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08);
+$shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08);
+$shadow-glow: 0 0 20px rgba(59, 130, 246, 0.2);
+$shadow-glow-strong: 0 0 40px rgba(59, 130, 246, 0.3);
+$shadow-card: 0 8px 32px rgba(15, 23, 42, 0.1);
+
+// ============================================
+// 2.5D 等距投影效果
+// ============================================
+@mixin isometric-base {
+  transform-style: preserve-3d;
+  perspective: 1200px;
+}
+
+@mixin isometric-tile($color, $height: 16px) {
+  position: relative;
+  background: linear-gradient(145deg, lighten($color, 8%) 0%, $color 100%);
+  transform: rotateX(55deg) rotateZ(-45deg);
+  transform-style: preserve-3d;
+  transition: all 0.3s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    height: $height;
+    background: linear-gradient(to bottom, darken($color, 8%), darken($color, 15%));
+    transform: skewX(45deg);
+    transform-origin: top;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 100%;
+    width: $height;
+    height: 100%;
+    background: linear-gradient(to right, darken($color, 5%), darken($color, 12%));
+    transform: skewY(45deg);
+    transform-origin: left;
+  }
+}
+
+// 冰川蓝发光效果
+@mixin glacier-glow($color: $color-primary) {
+  box-shadow:
+    0 0 5px rgba($color, 0.4),
+    0 0 15px rgba($color, 0.2),
+    0 0 30px rgba($color, 0.1);
+}
+
+@mixin glacier-border($color: $color-primary) {
+  border: 1px solid rgba($color, 0.3);
+  box-shadow:
+    inset 0 0 20px rgba($color, 0.05),
+    0 0 20px rgba($color, 0.1);
+}
+
+// 玻璃态效果（冰川版）
+@mixin glass-glacier {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 8px 32px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(59, 130, 246, 0.1);
+}
+
+// 网格背景 - 冰川蓝
+@mixin grid-bg-glacier($opacity: 0.08) {
+  background-image:
+    linear-gradient(rgba(59, 130, 246, $opacity) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, $opacity) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+// 渐变背景
+@mixin gradient-bg-glacier {
+  background: linear-gradient(135deg,
+    #f0f9ff 0%,
+    #e0f2fe 25%,
+    #f1f5f9 50%,
+    #dbeafe 75%,
+    #f0f9ff 100%
+  );
+}
+
+// ============================================
+// 动画关键帧
+// ============================================
+@keyframes float-3d {
+  0%, 100% {
+    transform: translateY(0) rotateX(55deg) rotateZ(-45deg);
+  }
+  50% {
+    transform: translateY(-8px) rotateX(55deg) rotateZ(-45deg);
+  }
+}
+
+@keyframes pulse-glacier {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes data-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// ============================================
+// 工具类
+// ============================================
+.parking-2-5d {
+  @include gradient-bg-glacier;
+  min-height: 100vh;
+  color: $text-primary;
+  @include grid-bg-glacier(0.05);
+}
+
+// 渐变文字
+.gradient-text {
+  background: linear-gradient(135deg, $color-primary 0%, $color-secondary 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// 冰川卡片
+.glacier-card {
+  @include glass-glacier;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 12px 40px rgba(15, 23, 42, 0.12),
+      0 0 0 1px rgba(59, 130, 246, 0.2);
+  }
+}
+
+// 状态指示灯
+.status-led {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+
+  &.online, &.free {
+    background: $color-success;
+    box-shadow: 0 0 10px rgba($color-success, 0.5);
+  }
+
+  &.warning {
+    background: $color-warning;
+    box-shadow: 0 0 10px rgba($color-warning, 0.5);
+  }
+
+  &.offline, &.occupied {
+    background: $color-danger;
+    box-shadow: 0 0 10px rgba($color-danger, 0.5);
+  }
+
+  &.idle {
+    background: $text-muted;
+  }
+}
+
+// 数字显示屏
+.digital-display {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(241, 245, 249, 0.9));
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+  padding: 12px 20px;
+  color: $color-primary;
+  font-weight: 600;
+  box-shadow:
+    inset 0 2px 4px rgba(15, 23, 42, 0.05),
+    0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+// 2.5D 车位基础样式
+.parking-space-2-5d {
+  transform-style: preserve-3d;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .space-surface {
+    transform-style: preserve-3d;
+    transition: all 0.3s ease;
+  }
+
+  &:hover {
+    .space-surface {
+      transform: translateZ(10px);
+    }
+  }
+
+  &.occupied {
+    .space-surface {
+      background: linear-gradient(145deg, rgba($color-danger, 0.15), rgba($color-danger, 0.05));
+      border-color: rgba($color-danger, 0.4);
+    }
+  }
+
+  &.vip {
+    .space-surface {
+      background: linear-gradient(145deg, rgba($color-secondary, 0.15), rgba($color-secondary, 0.05));
+      border-color: rgba($color-secondary, 0.4);
+    }
+  }
+
+  &.disabled {
+    .space-surface {
+      background: linear-gradient(145deg, rgba($color-success, 0.15), rgba($color-success, 0.05));
+      border-color: rgba($color-success, 0.4);
+    }
+  }
+}
+
+// 装饰性角标 - 冰川风格
+.corner-decoration {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 2px solid $color-primary;
+  opacity: 0.6;
+
+  &.top-left {
+    top: -1px;
+    left: -1px;
+    border-right: none;
+    border-bottom: none;
+    border-radius: 12px 0 0 0;
+  }
+
+  &.top-right {
+    top: -1px;
+    right: -1px;
+    border-left: none;
+    border-bottom: none;
+    border-radius: 0 12px 0 0;
+  }
+
+  &.bottom-left {
+    bottom: -1px;
+    left: -1px;
+    border-right: none;
+    border-top: none;
+    border-radius: 0 0 0 12px;
+  }
+
+  &.bottom-right {
+    bottom: -1px;
+    right: -1px;
+    border-left: none;
+    border-top: none;
+    border-radius: 0 0 12px 0;
+  }
+}
+
+// 数据流动画背景
+.data-flow-bg {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba($color-primary, 0.03) 50%,
+      transparent 100%
+    );
+    animation: data-flow 10s linear infinite;
+    pointer-events: none;
+  }
+}
+
+// 3D按钮
+.btn-3d {
+  position: relative;
+  background: linear-gradient(145deg, $color-primary, darken($color-primary, 10%));
+  border: none;
+  border-radius: 12px;
+  color: white;
+  padding: 12px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow:
+    0 4px 0 darken($color-primary, 20%),
+    0 8px 20px rgba($color-primary, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 6px 0 darken($color-primary, 20%),
+      0 12px 24px rgba($color-primary, 0.4);
+  }
+
+  &:active {
+    transform: translateY(4px);
+    box-shadow:
+      0 0 0 darken($color-primary, 20%),
+      0 4px 12px rgba($color-primary, 0.3);
+  }
+}
+
+// 统计数字
+.stat-number {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-weight: 700;
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, $color-primary, $color-secondary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// 标签样式
+.tag-glacier {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba($color-primary, 0.1);
+  color: $color-primary;
+  border: 1px solid rgba($color-primary, 0.2);
+
+  &.success {
+    background: rgba($color-success, 0.1);
+    color: $color-success;
+    border-color: rgba($color-success, 0.2);
+  }
+
+  &.warning {
+    background: rgba($color-warning, 0.1);
+    color: $color-warning;
+    border-color: rgba($color-warning, 0.2);
+  }
+
+  &.danger {
+    background: rgba($color-danger, 0.1);
+    color: $color-danger;
+    border-color: rgba($color-danger, 0.2);
+  }
+}

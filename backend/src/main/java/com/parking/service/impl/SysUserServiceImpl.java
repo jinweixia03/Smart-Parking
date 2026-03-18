@@ -66,7 +66,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setUsername(registerVO.getUsername());
         user.setPassword(passwordEncoder.encode(registerVO.getPassword()));
         user.setPhone(registerVO.getPhone());
-        user.setRealName(registerVO.getRealName());
+        // 设置用户类型，默认为普通用户(2)
+        Integer userType = registerVO.getUserType();
+        user.setUserType(userType != null ? userType : 2);
         user.setStatus(1);
 
         userMapper.insert(user);
@@ -111,9 +113,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     public void updateUserInfo(Long userId, UserVO userVO) {
         SysUser user = new SysUser();
         user.setUserId(userId);
-        user.setRealName(userVO.getRealName());
-        user.setEmail(userVO.getEmail());
-        user.setAvatar(userVO.getAvatar());
+        user.setPhone(userVO.getPhone());
+        // user_type 通常不允许用户自己修改，需要管理员权限
 
         userMapper.updateById(user);
     }
@@ -134,21 +135,58 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    public Page<SysUser> pageUsers(Page<SysUser> page, String keyword, Integer status) {
+    public Page<SysUser> pageUsers(Page<SysUser> page, String keyword, Integer status, Integer userType) {
         LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
         if (StringUtils.hasText(keyword)) {
             wrapper.like(SysUser::getUsername, keyword)
                     .or()
-                    .like(SysUser::getPhone, keyword)
-                    .or()
-                    .like(SysUser::getRealName, keyword);
+                    .like(SysUser::getPhone, keyword);
         }
         if (status != null) {
             wrapper.eq(SysUser::getStatus, status);
         }
+        if (userType != null) {
+            wrapper.eq(SysUser::getUserType, userType);
+        }
         wrapper.orderByDesc(SysUser::getCreateTime);
 
         return userMapper.selectPage(page, wrapper);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean resetPasswordByPhone(String username, String phone, String newPassword) {
+        if (!StringUtils.hasText(username)) {
+            throw new RuntimeException("用户名不能为空");
+        }
+        if (!StringUtils.hasText(phone)) {
+            throw new RuntimeException("手机号不能为空");
+        }
+        if (!StringUtils.hasText(newPassword)) {
+            throw new RuntimeException("新密码不能为空");
+        }
+        if (newPassword.length() < 6 || newPassword.length() > 20) {
+            throw new RuntimeException("密码长度应在 6-20 个字符之间");
+        }
+
+        // 根据用户名查询用户
+        SysUser user = userMapper.selectByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("用户名不存在");
+        }
+
+        // 验证手机号是否匹配
+        if (!phone.equals(user.getPhone())) {
+            throw new RuntimeException("用户名与手机号不匹配");
+        }
+
+        // 更新密码
+        SysUser updateUser = new SysUser();
+        updateUser.setUserId(user.getUserId());
+        updateUser.setPassword(passwordEncoder.encode(newPassword));
+
+        int result = userMapper.updateById(updateUser);
+        return result > 0;
     }
 
     private UserVO convertToUserVO(SysUser user) {

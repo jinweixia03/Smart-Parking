@@ -1,17 +1,32 @@
 <template>
-  <nav class="breadcrumb">
-    <el-icon class="home-icon" @click="$router.push('/')"><HomeFilled /></el-icon>
-    <span class="separator">/</span>
-    <transition-group name="breadcrumb">
+  <nav class="harmony-breadcrumb">
+    <div class="breadcrumb-start">
+      <div class="home-btn" @click="$router.push('/')">
+        <el-icon><HomeFilled /></el-icon>
+      </div>
+      <div class="divider">
+        <el-icon><ArrowRight /></el-icon>
+      </div>
+    </div>
+
+    <transition-group name="breadcrumb" tag="div" class="breadcrumb-list">
       <template v-for="(item, index) in breadcrumbs" :key="item.path">
-        <span v-if="index > 0" class="separator">/</span>
-        <span
+        <div
+          v-if="index > 0"
+          class="divider"
+        >
+          <el-icon><ArrowRight /></el-icon>
+        </div>
+        <div
           class="breadcrumb-item"
           :class="{ 'is-last': index === breadcrumbs.length - 1 }"
           @click="handleClick(item)"
         >
-          {{ item.title }}
-        </span>
+          <el-icon v-if="item.icon && index === breadcrumbs.length - 1" class="item-icon">
+            <component :is="item.icon" />
+          </el-icon>
+          <span class="item-text">{{ item.title }}</span>
+        </div>
       </template>
     </transition-group>
   </nav>
@@ -29,7 +44,8 @@ const getBreadcrumbs = () => {
   const matched = route.matched.filter(item => item.meta?.title)
   breadcrumbs.value = matched.map(item => ({
     path: item.path,
-    title: item.meta.title
+    title: item.meta.title,
+    icon: item.meta.icon
   }))
 }
 
@@ -43,52 +59,94 @@ watch(() => route.path, getBreadcrumbs, { immediate: true })
 </script>
 
 <style scoped lang="scss">
-.breadcrumb {
+@use '@/styles/harmony-theme.scss' as *;
+
+.harmony-breadcrumb {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #64748b;
 
-  .home-icon {
-    color: #2563eb;
-    cursor: pointer;
-    transition: transform 0.3s ease;
+  .breadcrumb-start {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 
-    &:hover {
-      transform: scale(1.1);
+    .home-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: rgba(0, 125, 255, 0.1);
+      border: 1px solid rgba(0, 125, 255, 0.2);
+      color: $harmony-primary-light;
+      cursor: pointer;
+      transition: all $transition-normal;
+
+      &:hover {
+        background: rgba(0, 125, 255, 0.2);
+        transform: scale(1.05);
+      }
     }
   }
 
-  .separator {
-    color: #cbd5e1;
+  .breadcrumb-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    color: $text-muted;
+    font-size: 12px;
   }
 
   .breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    color: $text-secondary;
+    font-size: 14px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    padding: 4px 8px;
-    border-radius: 6px;
+    transition: all $transition-normal;
 
     &:hover {
-      color: #2563eb;
-      background: rgba(37, 99, 235, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: $text-primary;
     }
 
     &.is-last {
-      color: #1e293b;
-      font-weight: 600;
+      background: rgba(0, 125, 255, 0.1);
+      border: 1px solid rgba(0, 125, 255, 0.2);
+      color: $harmony-primary-light;
+      font-weight: 500;
       cursor: default;
 
-      &:hover {
-        background: none;
+      .item-icon {
+        color: $harmony-primary-light;
       }
+    }
+
+    .item-icon {
+      font-size: 16px;
+      color: $text-tertiary;
+    }
+
+    .item-text {
+      white-space: nowrap;
     }
   }
 }
 
+// 动画
 .breadcrumb-enter-active,
 .breadcrumb-leave-active {
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .breadcrumb-enter-from {

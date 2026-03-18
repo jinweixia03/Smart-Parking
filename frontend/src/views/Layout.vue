@@ -184,7 +184,6 @@ const menuItems = computed(() => {
   if (userStore.isAdmin) {
     return [
       { path: '/dashboard', title: '数据大屏', icon: 'Odometer' },
-      { path: '/parking', title: '停车管理', icon: 'OfficeBuilding' },
       { path: '/records', title: '停车记录', icon: 'Document' },
       { path: '/spaces', title: '车位管理', icon: 'MapLocation' },
       { path: '/users', title: '用户管理', icon: 'User' },

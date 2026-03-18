@@ -56,5 +56,6 @@ public class ParkingRecord implements Serializable {
     // 非数据库字段
     private String spaceCode;
     private String areaCode;
+    private String areaName;
     private String username;
 }

@@ -18,11 +18,10 @@ public class UserVO {
 
     private String phone;
 
-    private String email;
-
-    private String realName;
-
-    private String avatar;
+    /**
+     * 用户类型: 1-管理员 2-普通用户
+     */
+    private Integer userType;
 
     private Integer status;
 

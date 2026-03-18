@@ -19,7 +19,10 @@ public class RegisterVO {
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
     private String phone;
 
-    private String realName;
+    /**
+     * 用户类型: 1-管理员 2-普通用户，默认为2
+     */
+    private Integer userType = 2;
 
     private String captcha;
 }

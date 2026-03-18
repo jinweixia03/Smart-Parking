@@ -60,17 +60,19 @@ algorithm:
   recognize:
     conf-threshold: 0.8
 
-# File Storage
+# File Upload Configuration
+upload:
+  # 上传目录（相对路径，指向项目根目录下的 uploads 文件夹）
+  path: uploads
+  # 访问URL前缀
+  url-prefix: /uploads
+
+# File Storage (兼容旧配置)
 storage:
   type: local
   local:
-    path: ./uploads
+    path: uploads
     url-prefix: /uploads
-  minio:
-    endpoint: http://localhost:9000
-    access-key: minioadmin
-    secret-key: minioadmin
-    bucket-name: parking
 
 # Parking Configuration
 parking:

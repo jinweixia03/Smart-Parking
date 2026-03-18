@@ -11,9 +11,10 @@ export interface User {
   userId: number
   username: string
   phone?: string
-  email?: string
-  realName?: string
-  avatar?: string
+  /**
+   * 用户类型: 1-管理员 2-普通用户
+   */
+  userType?: number
   status: number
   totalAmount?: number
   lastLoginTime?: string
@@ -37,7 +38,10 @@ export interface RegisterForm {
   username: string
   password: string
   phone?: string
-  realName?: string
+  /**
+   * 用户类型: 1-管理员 2-普通用户，默认为2
+   */
+  userType?: number
 }
 
 // 停车记录

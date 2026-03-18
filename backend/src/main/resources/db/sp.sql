@@ -86,6 +86,7 @@ CREATE TABLE `parking_area`  (
 CREATE TABLE `parking_space`  (
   `space_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '车位ID',
   `area_id` bigint UNSIGNED NOT NULL COMMENT '所属区域ID',
+  `floor` tinyint UNSIGNED NOT NULL DEFAULT 1 COMMENT '楼层: 1-一层 2-二层',
   `space_code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '车位编号',
   `space_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '普通' COMMENT '车位类型',
   `status` tinyint NOT NULL DEFAULT 0 COMMENT '状态: 0-空闲 1-占用',
@@ -127,6 +128,9 @@ CREATE TABLE `parking_record`  (
   INDEX `idx_record_entry`(`entry_time` ASC) USING BTREE,
   INDEX `idx_record_status`(`status` ASC) USING BTREE,
   INDEX `idx_record_pay`(`pay_status` ASC) USING BTREE,
+  INDEX `idx_record_status_entry`(`status`, `entry_time` DESC) USING BTREE,
+  INDEX `idx_record_pay_entry`(`pay_status`, `entry_time` DESC) USING BTREE,
+  INDEX `idx_record_plate_entry`(`plate_number`, `entry_time` DESC) USING BTREE,
   CONSTRAINT `fk_record_space` FOREIGN KEY (`space_id`) REFERENCES `parking_space` (`space_id`) ON DELETE SET NULL ON UPDATE RESTRICT,
   CONSTRAINT `chk_pay_status` CHECK (`pay_status` in (0,1,2)),
   CONSTRAINT `chk_record_status` CHECK (`status` in (0,1)),

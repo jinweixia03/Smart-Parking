@@ -35,12 +35,6 @@ const routes = [
         meta: { title: '数据大屏', icon: 'Odometer', adminOnly: true }
       },
       {
-        path: '/parking',
-        name: 'Parking',
-        component: () => import('@/views/admin/ParkingManage.vue'),
-        meta: { title: '停车管理', icon: 'OfficeBuilding', adminOnly: true }
-      },
-      {
         path: '/records',
         name: 'Records',
         component: () => import('@/views/admin/RecordManage.vue'),

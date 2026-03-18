@@ -1,0 +1,7 @@
+names:
+  0: license_plate
+nc: 1
+path: D:\1_Source\BSYCode\algorithm\data\yolo_dataset
+test: images/test
+train: images/train
+val: images/val

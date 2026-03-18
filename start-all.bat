@@ -87,8 +87,8 @@ if exist "target\classes" (
 echo [Start backend...]
 start "SmartParking Backend" cmd /c "cd /d "%BACKEND_DIR%" && "%MAVEN_CMD%" spring-boot:run -DskipTests"
 
-echo [Wait 15 seconds...]
-timeout /t 15 /nobreak >nul
+echo [Wait 5 seconds...]
+timeout /t 5 /nobreak >nul
 echo [OK] Backend started
 
 REM Start frontend

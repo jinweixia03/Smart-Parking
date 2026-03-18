@@ -203,6 +203,8 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { ElMessage } from 'element-plus'
+import { startSimulation as startSimApi } from '@/api/simulation'
+import { entry, exit } from '@/api/parking'
 
 const simulationMode = ref('single')
 const difficulty = ref('medium')
@@ -246,38 +248,54 @@ const filteredResults = computed(() => {
 
 const startSimulation = async () => {
   running.value = true
-  const provinces = ['京', '沪', '津', '渝', '冀', '晋', '辽', '吉', '黑', '苏', '浙', '皖', '闽', '赣', '鲁', '豫', '鄂', '湘', '粤', '桂']
 
-  for (let i = 0; i < batchCount.value; i++) {
-    await new Promise(resolve => setTimeout(resolve, 300))
+  try {
+    // 调用后端仿真API
+    const res = await startSimApi({
+      count: batchCount.value,
+      eventType: eventType.value,
+      mode: simulationMode.value,
+      difficulty: difficulty.value,
+      delay: 100
+    })
 
-    const province = provinces[Math.floor(Math.random() * provinces.length)]
-    const plate = province + String.fromCharCode(65 + Math.floor(Math.random() * 26)) +
-      Array.from({length: 5}, () => Math.floor(Math.random() * 10)).join('')
+    const simResults = res.data || []
 
-    const isCorrect = Math.random() > 0.1
-    const confidence = 0.75 + Math.random() * 0.24
+    for (let i = 0; i < simResults.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 200))
 
-    const result = {
-      id: Date.now() + i,
-      plateNumber: plate,
-      recognizedPlate: isCorrect ? plate : plate.slice(0, -1) + Math.floor(Math.random() * 10),
-      confidence: confidence,
-      correct: isCorrect,
-      timeCost: 35 + Math.floor(Math.random() * 30),
-      image: `https://placehold.co/160x60/2563eb/ffffff?text=${plate}`,
-      time: new Date().toLocaleTimeString()
+      const item = simResults[i]
+      const isCorrect = item.success !== false
+      const confidence = (item.confidence || 85) / 100
+
+      const result = {
+        id: Date.now() + i,
+        plateNumber: item.plateNumber,
+        recognizedPlate: item.plateNumber,
+        confidence: confidence,
+        correct: isCorrect,
+        timeCost: item.processTime || 45,
+        image: `https://placehold.co/160x60/2563eb/ffffff?text=${item.plateNumber}`,
+        time: new Date().toLocaleTimeString(),
+        eventType: item.eventType,
+        fee: item.fee,
+        message: item.message
+      }
+
+      results.value.unshift(result)
+      stats.total++
+      if (isCorrect) stats.correct++
+      else stats.wrong++
+      stats.accuracy = ((stats.correct / stats.total) * 100).toFixed(1)
     }
 
-    results.value.unshift(result)
-    stats.total++
-    if (isCorrect) stats.correct++
-    else stats.wrong++
-    stats.accuracy = ((stats.correct / stats.total) * 100).toFixed(1)
+    ElMessage.success(`仿真完成，成功率: ${stats.accuracy}%`)
+  } catch (error) {
+    console.error('仿真失败:', error)
+    ElMessage.error('仿真失败: ' + (error.message || '未知错误'))
+  } finally {
+    running.value = false
   }
-
-  running.value = false
-  ElMessage.success('仿真完成')
 }
 
 const resetSimulation = () => {
@@ -333,7 +351,7 @@ const resetSimulation = () => {
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 
       .el-icon {
-        color: #2563eb;
+        color: #6366f1;
       }
     }
   }
@@ -362,7 +380,7 @@ const resetSimulation = () => {
       .panel-icon {
         width: 48px;
         height: 48px;
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -418,11 +436,11 @@ const resetSimulation = () => {
         }
 
         &:hover, &.active {
-          border-color: #2563eb;
-          background: rgba(37, 99, 235, 0.05);
+          border-color: #6366f1;
+          background: rgba(99, 102, 241, 0.05);
 
           .el-icon, span {
-            color: #2563eb;
+            color: #6366f1;
           }
         }
       }
@@ -479,7 +497,7 @@ const resetSimulation = () => {
         }
 
         &.primary {
-          background: linear-gradient(135deg, #2563eb, #1d4ed8);
+          background: linear-gradient(135deg, #6366f1, #8b5cf6);
           color: white;
 
           &:hover {
@@ -524,7 +542,7 @@ const resetSimulation = () => {
 
       &.success .mini-stat-value { color: #10b981; }
       &.error .mini-stat-value { color: #ef4444; }
-      &.info .mini-stat-value { color: #2563eb; }
+      &.info .mini-stat-value { color: #6366f1; }
 
       .mini-stat-value {
         font-size: 28px;
@@ -577,7 +595,7 @@ const resetSimulation = () => {
           transition: all 0.3s ease;
 
           &:hover, &.active {
-            background: #2563eb;
+            background: #6366f1;
             color: white;
           }
         }

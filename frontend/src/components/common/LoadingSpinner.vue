@@ -55,10 +55,10 @@ defineProps({
     width: 51px;
     height: 51px;
     margin: 6px;
-    border: 4px solid #2563eb;
+    border: 4px solid #6366f1;
     border-radius: 50%;
     animation: spinner-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-    border-color: #2563eb transparent transparent transparent;
+    border-color: #6366f1 transparent transparent transparent;
 
     &:nth-child(1) { animation-delay: -0.45s; }
     &:nth-child(2) { animation-delay: -0.3s; }

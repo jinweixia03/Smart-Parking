@@ -29,11 +29,10 @@ public class SysUser implements Serializable {
 
     private String phone;
 
-    private String realName;
-
-    private String email;
-
-    private String avatar;
+    /**
+     * 用户类型: 1-管理员 2-普通用户
+     */
+    private Integer userType;
 
     private Integer status;
 
@@ -42,4 +41,9 @@ public class SysUser implements Serializable {
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime lastLoginTime;
+
+    private String lastLoginIp;
 }

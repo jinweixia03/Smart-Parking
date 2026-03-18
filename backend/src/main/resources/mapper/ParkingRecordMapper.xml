@@ -31,8 +31,8 @@
                r.pay_status, r.pay_time, r.pay_method, r.status,
                s.space_code, a.area_code, a.area_name
         FROM parking_record r
-        LEFT JOIN parking_space s ON r.space_id = s.space_id
-        LEFT JOIN parking_area a ON s.area_id = a.area_id
+        INNER JOIN parking_space s ON r.space_id = s.space_id
+        INNER JOIN parking_area a ON s.area_id = a.area_id
         <where>
             <if test="plateNumber != null and plateNumber != ''">
                 AND r.plate_number LIKE CONCAT('%', #{plateNumber}, '%')

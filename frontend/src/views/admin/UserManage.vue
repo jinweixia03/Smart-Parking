@@ -23,7 +23,13 @@
       <el-table :data="users" v-loading="loading">
         <el-table-column prop="userId" label="ID" width="80" />
         <el-table-column prop="username" label="用户名" width="120" />
-        <el-table-column prop="realName" label="真实姓名" width="120" />
+        <el-table-column prop="userType" label="用户类型" width="100">
+          <template #default="{ row }">
+            <el-tag :type="row.userType === 1 ? 'danger' : 'info'">
+              {{ row.userType === 1 ? '管理员' : '普通用户' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="phone" label="手机号" width="150" />
         <el-table-column prop="email" label="邮箱" />
         <el-table-column prop="status" label="状态" width="100">
@@ -65,8 +71,8 @@ const fetchUsers = async () => {
   loading.value = true
   // 模拟数据
   users.value = [
-    { userId: 1, username: 'user1', realName: '张三', phone: '13800138000', email: 'user1@test.com', status: 1, createTime: '2024-01-01 10:00:00' },
-    { userId: 2, username: 'user2', realName: '李四', phone: '13800138001', email: 'user2@test.com', status: 1, createTime: '2024-01-02 11:00:00' }
+    { userId: 1, username: 'user1', userType: 1, phone: '13800138000', email: 'user1@test.com', status: 1, createTime: '2024-01-01 10:00:00' },
+    { userId: 2, username: 'user2', userType: 2, phone: '13800138001', email: 'user2@test.com', status: 1, createTime: '2024-01-02 11:00:00' }
   ]
   total.value = 2
   loading.value = false
@@ -81,15 +87,64 @@ onMounted(fetchUsers)
 
 <style scoped lang="scss">
 .user-manage {
+  padding: 24px;
+  height: 100%;
+  box-sizing: border-box;
+
+  :deep(.el-card) {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .el-card__body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+  }
+
   .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    span {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+  }
+
+  .el-table {
+    flex: 1;
+    overflow: auto;
   }
 
   .pagination {
     margin-top: 20px;
     justify-content: flex-end;
+    flex-shrink: 0;
+  }
+
+  // 响应式
+  @media (max-width: 768px) {
+    padding: 16px;
+
+    .card-header {
+      flex-direction: column;
+      align-items: flex-start;
+
+      .el-input {
+        width: 100% !important;
+      }
+    }
+
+    .pagination {
+      justify-content: center;
+    }
   }
 }
 </style>

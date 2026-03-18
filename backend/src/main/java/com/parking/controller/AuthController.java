@@ -50,6 +50,30 @@ public class AuthController {
         return Result.success();
     }
 
+    /**
+     * 忘记密码 - 通过用户名和手机号重置密码
+     * @param username 用户名
+     * @param phone 手机号
+     * @param newPassword 新密码
+     * @return 重置结果
+     */
+    @PostMapping("/forgot-password")
+    public Result<?> forgotPassword(
+            @RequestParam String username,
+            @RequestParam String phone,
+            @RequestParam String newPassword) {
+        try {
+            boolean success = userService.resetPasswordByPhone(username, phone, newPassword);
+            if (success) {
+                return Result.success("密码重置成功，请使用新密码登录");
+            } else {
+                return Result.error("密码重置失败，请稍后重试");
+            }
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
+        }
+    }
+
     private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {

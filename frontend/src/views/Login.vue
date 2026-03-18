@@ -233,7 +233,7 @@ const handleLogin = async () => {
 
 // 忘记密码
 const forgotPassword = () => {
-  ElMessage.info('请联系管理员重置密码')
+  router.push('/forgot-password')
 }
 
 // 其他登录方式

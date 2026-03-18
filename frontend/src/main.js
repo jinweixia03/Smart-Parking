@@ -7,6 +7,8 @@ import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 
 // 引入设计系统样式
 import '@/styles/variables.scss'
+import '@/styles/blue-theme.scss'
+import '@/styles/global.scss'
 
 import App from './App.vue'
 import router from './router'

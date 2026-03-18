@@ -6,7 +6,7 @@
 
     <div class="card-content">
       <div class="card-header">
-        <div class="icon-wrapper" :style="{ background: iconBg }">
+        <div class="icon-wrapper" :style="{ background: iconBg, color: color }">
           <el-icon size="24">
             <component :is="icon" />
           </el-icon>
@@ -64,7 +64,7 @@ const props = defineProps({
 })
 
 const gradient = computed(() => `linear-gradient(135deg, ${props.color}, ${adjustColor(props.color, -20)})`)
-const iconBg = computed(() => `${props.color}20`)
+const iconBg = computed(() => `${props.color}15`)
 const valueColor = computed(() => props.color)
 
 const cardStyle = computed(() => ({
@@ -83,21 +83,29 @@ const adjustColor = (color, amount) => {
 <style scoped lang="scss">
 .stat-card {
   position: relative;
-  background: white;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 16px;
   padding: 12px 16px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md), var(--shadow-glow-soft);
+    background: rgba(255, 255, 255, 0.85);
 
     .gradient-circle {
       transform: scale(1.1);
+    }
+
+    .icon-wrapper {
+      transform: scale(1.1) rotate(5deg);
     }
   }
 
@@ -113,7 +121,7 @@ const adjustColor = (color, amount) => {
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      opacity: 0.1;
+      opacity: 0.08;
       transition: transform 0.5s ease;
     }
   }
@@ -135,15 +143,10 @@ const adjustColor = (color, amount) => {
         display: flex;
         align-items: center;
         justify-content: center;
-        color: var(--card-color);
         transition: all 0.3s ease;
 
         .el-icon {
           font-size: 20px;
-        }
-
-        &:hover {
-          transform: scale(1.1) rotate(5deg);
         }
       }
 
@@ -157,12 +160,12 @@ const adjustColor = (color, amount) => {
         font-weight: 600;
 
         &.up {
-          background: #dcfce7;
-          color: #16a34a;
+          background: rgba(16, 185, 129, 0.12);
+          color: #059669;
         }
 
         &.down {
-          background: #fee2e2;
+          background: rgba(239, 68, 68, 0.12);
           color: #dc2626;
         }
 
@@ -192,7 +195,7 @@ const adjustColor = (color, amount) => {
 
       .stat-label {
         font-size: 12px;
-        color: #64748b;
+        color: var(--text-muted);
         font-weight: 500;
       }
     }
@@ -206,7 +209,7 @@ const adjustColor = (color, amount) => {
         .progress-track {
           flex: 1;
           height: 4px;
-          background: #f1f5f9;
+          background: rgba(203, 213, 225, 0.4);
           border-radius: 2px;
           overflow: hidden;
 
@@ -220,13 +223,13 @@ const adjustColor = (color, amount) => {
         .progress-text {
           font-size: 11px;
           font-weight: 600;
-          color: #64748b;
+          color: var(--text-muted);
         }
       }
 
       .footer-text {
         font-size: 11px;
-        color: #94a3b8;
+        color: var(--text-placeholder);
       }
     }
   }

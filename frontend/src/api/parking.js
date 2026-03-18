@@ -1,4 +1,4 @@
-import request from './request'
+import request from '@/api/request'
 
 export const getRealTimeData = () => {
   return request.get('/parking/realtime')
@@ -38,4 +38,29 @@ export const getAreas = () => {
 
 export const getSpaces = (areaId) => {
   return request.get('/parking/spaces', { params: { areaId } })
+}
+
+/**
+ * 根据车牌号查询停车记录（普通用户）
+ * @param {string} plateNumber - 车牌号
+ */
+export const getRecordsByPlate = (plateNumber) => {
+  return request.get(`/parking/records/by-plate/${plateNumber}`)
+}
+
+/**
+ * 获取车辆详情（包括识别图片和最近停车记录）
+ * @param {string} plateNumber - 车牌号
+ */
+export const getVehicleDetail = (plateNumber) => {
+  return request.get(`/parking/vehicle/detail/${plateNumber}`)
+}
+
+/**
+ * 支付停车费用
+ * @param {number} recordId - 记录ID
+ * @param {string} payMethod - 支付方式
+ */
+export const payRecord = (recordId, payMethod = '微信支付') => {
+  return request.post(`/parking/pay/${recordId}`, null, { params: { payMethod } })
 }

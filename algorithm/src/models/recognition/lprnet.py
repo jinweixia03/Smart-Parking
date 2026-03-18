@@ -82,8 +82,9 @@ class LPRNet(nn.Module):
         x = self.classifier(x)     # [B, num_classes, 12, 94]
 
         # 转换为CTC格式 [T, B, C]
-        x = x.permute(2, 0, 3, 1)  # [12, 94, B, C]
-        x = x.mean(dim=1)          # [12, B, C]
+        # T 应该是宽度方向 (W=94)，表示时间步长
+        x = x.mean(dim=2)          # [B, num_classes, 94] - 对高度维度求平均
+        x = x.permute(2, 0, 1)     # [94, B, num_classes] - [T, B, C]
 
         return x
 

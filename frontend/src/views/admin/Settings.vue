@@ -1,7 +1,7 @@
 <template>
   <div class="settings">
     <el-row :gutter="20">
-      <el-col :span="12">
+      <el-col :xs="24" :sm="24" :md="12">
         <el-card>
           <template #header>
             <span>收费规则</span>
@@ -31,7 +31,7 @@
         </el-card>
       </el-col>
 
-      <el-col :span="12">
+      <el-col :xs="24" :sm="24" :md="12">
         <el-card>
           <template #header>
             <span>系统配置</span>
@@ -93,8 +93,43 @@ const saveSystemConfig = () => {
 
 <style scoped lang="scss">
 .settings {
-  .el-card {
+  padding: 24px;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: auto;
+
+  :deep(.el-card) {
     margin-bottom: 20px;
+
+    .el-card__header {
+      span {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1e293b;
+      }
+    }
+  }
+
+  // 响应式
+  @media (max-width: 768px) {
+    padding: 16px;
+
+    :deep(.el-form) {
+      .el-form-item {
+        margin-bottom: 16px;
+
+        .el-form-item__label {
+          float: none;
+          display: block;
+          text-align: left;
+          margin-bottom: 8px;
+        }
+
+        .el-form-item__content {
+          margin-left: 0 !important;
+        }
+      }
+    }
   }
 }
 </style>
