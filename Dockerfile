@@ -38,7 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # 进程管理
     supervisor \
     # 工具
-    curl libglib2.0-0 libgl1 tzdata \
+    curl libglib2.0-0 libgl1 tzdata git \
     && rm -rf /var/lib/apt/lists/* \
     && ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
