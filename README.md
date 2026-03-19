@@ -99,7 +99,7 @@ docker load -i C:\Users\你的用户名\Desktop\smart-parking.tar
 3. 加载完成后，输入以下命令启动：
 
 ```cmd
-docker run -d -p 3000:3000 --name parking --restart always smart-parking
+docker run -d -p 3000:3000 --name parking --restart always smart-parking:latest
 ```
 
 4. 等待约 **30 秒**，然后打开浏览器，访问：
