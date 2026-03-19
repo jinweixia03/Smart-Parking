@@ -5,6 +5,7 @@ import com.parking.entity.ParkingArea;
 import com.parking.entity.ParkingRecord;
 import com.parking.entity.ParkingSpace;
 import com.parking.entity.SysUser;
+import com.parking.service.FileService;
 import com.parking.service.ParkingAreaService;
 import com.parking.service.ParkingRecordService;
 import com.parking.service.ParkingSpaceService;
@@ -15,9 +16,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 停车场Controller
@@ -43,6 +48,10 @@ public class ParkingController {
     private final ParkingAreaService areaService;
     private final ParkingSpaceService spaceService;
     private final SysUserService userService;
+    private final FileService fileService;
+
+    // 模拟订单存储（实际项目应存数据库）key=orderId, value={recordId, method, createTime, paid}
+    private static final ConcurrentHashMap<String, Map<String, Object>> orderStore = new ConcurrentHashMap<>();
 
     /**
      * 获取停车场实时数据（仅管理员）
@@ -98,12 +107,14 @@ public class ParkingController {
      * 车辆入场（仅管理员）
      *
      * @param plateNumber 车牌号 (必填)
+     * @param image       入场图片（可选）
      * @return 创建的停车记录
      * @apiNote 如果车辆已在停车场内，返回错误
      */
     @PostMapping("/entry")
     public Result<ParkingRecord> entry(
             @RequestParam String plateNumber,
+            @RequestParam(required = false) MultipartFile image,
             HttpServletRequest request) {
 
         // 检查是否为管理员
@@ -111,7 +122,7 @@ public class ParkingController {
             return Result.error(403, "只有管理员可以操作车辆入场");
         }
 
-        log.info("车辆入场请求: plateNumber={}", plateNumber);
+        log.info("车辆入场请求: plateNumber={}, hasImage={}", plateNumber, image != null);
 
         if (!StringUtils.hasText(plateNumber)) {
             return Result.error("车牌号不能为空");
@@ -119,6 +130,16 @@ public class ParkingController {
 
         try {
             ParkingRecord record = recordService.entry(plateNumber);
+
+            // 上传入场图片（仅保存文件，数据库无对应字段）
+            if (image != null && !image.isEmpty()) {
+                try {
+                    fileService.uploadImage(image, "entry");
+                } catch (Exception e) {
+                    log.warn("入场图片上传失败: {}", e.getMessage());
+                }
+            }
+
             return Result.success("入场成功", record);
         } catch (IllegalArgumentException e) {
             log.warn("入场参数错误: {}", e.getMessage());
@@ -130,15 +151,47 @@ public class ParkingController {
     }
 
     /**
+     * 上传入场图片到指定记录
+     */
+    @PostMapping("/{recordId}/entry-image")
+    public Result<Void> uploadEntryImage(
+            @PathVariable Long recordId,
+            @RequestParam("image") MultipartFile image,
+            HttpServletRequest request) {
+
+        if (!isAdmin(request)) {
+            return Result.error(403, "只有管理员可以操作");
+        }
+
+        ParkingRecord record = recordService.getById(recordId);
+        if (record == null) {
+            return Result.error("记录不存在");
+        }
+
+        try {
+            String imageUrl = fileService.uploadImage(image, "entry");
+            record.setEntryImage(imageUrl);
+            recordService.updateById(record);
+            log.info("上传入场图片: recordId={}, url={}", recordId, imageUrl);
+            return Result.success();
+        } catch (Exception e) {
+            log.error("上传入场图片失败: {}", e.getMessage());
+            return Result.error("上传失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 车辆出场（仅管理员）
      *
      * @param plateNumber 车牌号 (必填)
+     * @param image       出场图片（可选）
      * @return 出场结果：记录、停车时长、费用、是否需要支付
      * @apiNote 如果未找到入场记录，返回错误
      */
     @PostMapping("/exit")
     public Result<Map<String, Object>> exit(
             @RequestParam String plateNumber,
+            @RequestParam(required = false) MultipartFile image,
             HttpServletRequest request) {
 
         // 检查是否为管理员
@@ -146,7 +199,7 @@ public class ParkingController {
             return Result.error(403, "只有管理员可以操作车辆出场");
         }
 
-        log.info("车辆出场请求: plateNumber={}", plateNumber);
+        log.info("车辆出场请求: plateNumber={}, hasImage={}", plateNumber, image != null);
 
         if (!StringUtils.hasText(plateNumber)) {
             return Result.error("车牌号不能为空");
@@ -154,6 +207,16 @@ public class ParkingController {
 
         try {
             Map<String, Object> result = recordService.exit(plateNumber);
+
+            // 上传出场图片（仅保存文件，数据库无对应字段）
+            if (image != null && !image.isEmpty()) {
+                try {
+                    fileService.uploadImage(image, "exit");
+                } catch (Exception e) {
+                    log.warn("出场图片上传失败: {}", e.getMessage());
+                }
+            }
+
             return Result.success("出场成功", result);
         } catch (IllegalArgumentException e) {
             log.warn("出场参数错误: {}", e.getMessage());
@@ -161,6 +224,36 @@ public class ParkingController {
         } catch (RuntimeException e) {
             log.warn("出场失败: {}", e.getMessage());
             return Result.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 上传出场图片到指定记录
+     */
+    @PostMapping("/{recordId}/exit-image")
+    public Result<Void> uploadExitImage(
+            @PathVariable Long recordId,
+            @RequestParam("image") MultipartFile image,
+            HttpServletRequest request) {
+
+        if (!isAdmin(request)) {
+            return Result.error(403, "只有管理员可以操作");
+        }
+
+        ParkingRecord record = recordService.getById(recordId);
+        if (record == null) {
+            return Result.error("记录不存在");
+        }
+
+        try {
+            String imageUrl = fileService.uploadImage(image, "exit");
+            record.setExitImage(imageUrl);
+            recordService.updateById(record);
+            log.info("上传出场图片: recordId={}, url={}", recordId, imageUrl);
+            return Result.success();
+        } catch (Exception e) {
+            log.error("上传出场图片失败: {}", e.getMessage());
+            return Result.error("上传失败: " + e.getMessage());
         }
     }
 
@@ -202,6 +295,103 @@ public class ParkingController {
     }
 
     /**
+     * 创建支付订单（模拟微信/支付宝下单，返回二维码内容）
+     *
+     * @param recordId  停车记录ID
+     * @param payMethod 支付方式: wechat / alipay
+     * @return 订单号、二维码内容、金额、过期时间
+     */
+    @PostMapping("/pay/create-order")
+    public Result<Map<String, Object>> createOrder(
+            @RequestParam Long recordId,
+            @RequestParam(defaultValue = "wechat") String payMethod,
+            HttpServletRequest request) {
+
+        if (isAdmin(request)) return Result.error(403, "管理员不能进行支付操作");
+
+        ParkingRecord record = recordService.getById(recordId);
+        if (record == null) return Result.error("记录不存在");
+        if (record.getPayStatus() != 0) return Result.error("该记录无需支付");
+
+        String orderId = UUID.randomUUID().toString().replace("-", "").substring(0, 20).toUpperCase();
+        long expireAt = System.currentTimeMillis() + 5 * 60 * 1000; // 5分钟有效
+
+        // 模拟二维码内容（实际是支付平台返回的跳转链接）
+        String qrContent;
+        if ("alipay".equals(payMethod)) {
+            qrContent = "https://qr.alipay.com/mock/" + orderId + "?amount=" + record.getFeeAmount();
+        } else {
+            qrContent = "weixin://wxpay/bizpayurl?pr=" + orderId + "&amount=" + record.getFeeAmount();
+        }
+
+        Map<String, Object> orderInfo = new HashMap<>();
+        orderInfo.put("recordId", recordId);
+        orderInfo.put("payMethod", payMethod);
+        orderInfo.put("amount", record.getFeeAmount());
+        orderInfo.put("expireAt", expireAt);
+        orderInfo.put("paid", false);
+        orderStore.put(orderId, orderInfo);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("orderId", orderId);
+        data.put("qrContent", qrContent);
+        data.put("amount", record.getFeeAmount());
+        data.put("payMethod", payMethod);
+        data.put("expireAt", expireAt);
+        data.put("plateNumber", record.getPlateNumber());
+
+        log.info("创建支付订单: orderId={}, recordId={}, method={}, amount={}", orderId, recordId, payMethod, record.getFeeAmount());
+        return Result.success("订单创建成功", data);
+    }
+
+    /**
+     * 查询支付订单状态（前端轮询）
+     * 模拟逻辑：订单创建30秒后自动标记为已支付
+     *
+     * @param orderId 订单号
+     * @return paid: true/false
+     */
+    @GetMapping("/pay/query-order/{orderId}")
+    public Result<Map<String, Object>> queryOrder(
+            @PathVariable String orderId,
+            HttpServletRequest request) {
+
+        if (isAdmin(request)) return Result.error(403, "无权访问");
+
+        Map<String, Object> order = orderStore.get(orderId);
+        if (order == null) return Result.error("订单不存在");
+
+        long expireAt = (long) order.get("expireAt");
+        if (System.currentTimeMillis() > expireAt) {
+            orderStore.remove(orderId);
+            return Result.error("订单已过期");
+        }
+
+        boolean paid = (boolean) order.get("paid");
+
+        // 模拟：订单创建30秒后自动支付成功
+        long createTime = expireAt - 5 * 60 * 1000;
+        if (!paid && System.currentTimeMillis() - createTime >= 10 * 1000) {
+            paid = true;
+            order.put("paid", true);
+
+            // 真正执行支付
+            try {
+                Long recordId = Long.valueOf(order.get("recordId").toString());
+                recordService.pay(recordId);
+                log.info("模拟支付成功: orderId={}, recordId={}", orderId, recordId);
+            } catch (Exception e) {
+                log.warn("支付执行失败: {}", e.getMessage());
+            }
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("paid", paid);
+        data.put("orderId", orderId);
+        return Result.success(data);
+    }
+
+    /**
      * 获取车辆当前停车状态
      *
      * @param plateNumber 车牌号
@@ -234,6 +424,8 @@ public class ParkingController {
             @RequestParam(required = false) String plateNumber,
             @RequestParam(required = false) Integer status,
             @RequestParam(required = false) Integer payStatus,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
             HttpServletRequest request) {
 
         // 参数校验
@@ -253,7 +445,7 @@ public class ParkingController {
         }
 
         Page<ParkingRecord> result = recordService.pageRecords(
-                new Page<>(page, size), plateNumber, status, payStatus);
+                new Page<>(page, size), plateNumber, status, payStatus, startDate, endDate);
         return Result.success(result);
     }
 
@@ -312,17 +504,12 @@ public class ParkingController {
     }
 
     /**
-     * 获取车位列表（仅管理员）
+     * 获取车位列表（公开接口）
      *
      * @return 车位列表（包含所有车位和区域信息）
      */
     @GetMapping("/spaces")
-    public Result<List<ParkingSpace>> getSpaces(HttpServletRequest request) {
-
-        if (!isAdmin(request)) {
-            return Result.error(403, "无权访问");
-        }
-
+    public Result<List<ParkingSpace>> getSpaces() {
         List<ParkingSpace> spaces = spaceService.listAllWithArea();
         return Result.success(spaces);
     }

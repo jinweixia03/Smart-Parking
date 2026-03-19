@@ -1,6 +1,7 @@
 package com.parking.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -29,9 +30,11 @@ public class ParkingSpace implements Serializable {
 
     private String currentPlate;
 
-    // 非数据库字段
-    // entryTime 从 parking_record 表中查询获得
+    // 非数据库字段（关联 parking_area 表）
+    @TableField(exist = false)
     private String areaName;
+    @TableField(exist = false)
     private String areaCode;
-    private String areaType;  // 关联区域的类型
+    @TableField(exist = false)
+    private String areaType;
 }

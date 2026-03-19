@@ -1,5 +1,6 @@
 package com.parking.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.parking.entity.FeeRule;
@@ -169,18 +170,17 @@ public class ParkingRecordServiceImpl extends ServiceImpl<ParkingRecordMapper, P
             throw new RuntimeException("该车辆已在停车场内");
         }
 
-        // 2. 创建新记录
-        ParkingRecord record = buildEntryRecord(plateNumber);
-
-        // 3. 分配车位
+        // 2. 分配车位（无车位直接拒绝）
         ParkingSpace space = allocateSpace();
-        if (space != null) {
-            occupySpace(space, plateNumber, record);
-        } else {
-            log.warn("停车场已满，车辆{}无车位分配", plateNumber);
+        if (space == null) {
+            throw new RuntimeException("停车场已满，暂无可用车位");
         }
 
-        // 5. 保存记录
+        // 3. 创建新记录并关联车位
+        ParkingRecord record = buildEntryRecord(plateNumber);
+        occupySpace(space, plateNumber, record);
+
+        // 4. 保存记录
         recordMapper.insert(record);
         log.info("车辆入场成功: recordId={}, plateNumber={}, spaceId={}",
                 record.getRecordId(), plateNumber, record.getSpaceId());
@@ -269,8 +269,8 @@ public class ParkingRecordServiceImpl extends ServiceImpl<ParkingRecordMapper, P
     }
 
     @Override
-    public Page<ParkingRecord> pageRecords(Page<ParkingRecord> page, String plateNumber, Integer status, Integer payStatus) {
-        return recordMapper.selectPageWithDetail(page, plateNumber, status, payStatus);
+    public Page<ParkingRecord> pageRecords(Page<ParkingRecord> page, String plateNumber, Integer status, Integer payStatus, String startDate, String endDate) {
+        return recordMapper.selectPageWithDetail(page, plateNumber, status, payStatus, startDate, endDate);
     }
 
     @Override
@@ -281,11 +281,40 @@ public class ParkingRecordServiceImpl extends ServiceImpl<ParkingRecordMapper, P
     @Override
     public Map<String, Object> getTodayStats() {
         Map<String, Object> stats = new HashMap<>();
-        stats.put("entryCount", recordMapper.countTodayEntry());
+
+        // 今日数据
+        int todayEntry = recordMapper.countTodayEntry();
+        BigDecimal todayRevenue = recordMapper.sumTodayRevenue();
+        int activeCount = recordMapper.countActiveParking();
+
+        // 昨日数据（用于计算趋势）
+        int yesterdayEntry = recordMapper.countYesterdayEntry();
+        BigDecimal yesterdayRevenue = recordMapper.sumYesterdayRevenue();
+
+        // 计算平均停车时长（分钟转小时）
+        double avgMinutes = recordMapper.avgTodayParkingMinutes();
+        double avgHours = Math.round(avgMinutes / 60 * 10) / 10.0; // 保留1位小数
+
+        // 计算趋势百分比
+        int entryTrend = calculateTrend(todayEntry, yesterdayEntry);
+        int revenueTrend = calculateTrend(todayRevenue.intValue(), yesterdayRevenue.intValue());
+
+        stats.put("entryCount", todayEntry);
         stats.put("exitCount", recordMapper.countTodayExit());
-        stats.put("revenue", recordMapper.sumTodayRevenue());
-        stats.put("activeCount", recordMapper.countActiveParking());
+        stats.put("revenue", todayRevenue);
+        stats.put("activeCount", activeCount);
+        stats.put("avgHours", avgHours);
+        stats.put("entryTrend", entryTrend);
+        stats.put("revenueTrend", revenueTrend);
+
         return stats;
+    }
+
+    private int calculateTrend(int today, int yesterday) {
+        if (yesterday == 0) {
+            return today > 0 ? 100 : 0;
+        }
+        return (int) Math.round(((double) (today - yesterday) / yesterday) * 100);
     }
 
     @Override
@@ -395,16 +424,15 @@ public class ParkingRecordServiceImpl extends ServiceImpl<ParkingRecordMapper, P
     }
 
     /**
-     * 释放车位
+     * 释放车位（显式将 current_plate 置为 NULL）
      */
     private void releaseSpace(Long spaceId) {
-        ParkingSpace space = spaceMapper.selectById(spaceId);
-        if (space != null) {
-            space.setStatus(SPACE_STATUS_FREE);
-            space.setCurrentPlate(null);
-            spaceMapper.updateById(space);
-            log.debug("释放车位: spaceId={}", spaceId);
-        }
+        LambdaUpdateWrapper<ParkingSpace> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(ParkingSpace::getSpaceId, spaceId)
+               .set(ParkingSpace::getStatus, SPACE_STATUS_FREE)
+               .set(ParkingSpace::getCurrentPlate, null);
+        spaceMapper.update(null, wrapper);
+        log.debug("释放车位: spaceId={}", spaceId);
     }
 
     /**

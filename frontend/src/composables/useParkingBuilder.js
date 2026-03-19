@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { COLORS } from '@/constants/parking.js'
+import { COLORS, AREA_COLORS, AREA_COLORS_OCCUPIED } from '@/constants/parking.js'
 import {
   createSpaceGeometry,
   createGroundLabel,
@@ -1162,14 +1162,16 @@ export function useParkingBuilder(scene, materials, spaceMeshes, carMeshes) {
     const group = new THREE.Group()
     group.position.set(x, 0, z)
 
-    const isVip = space.areaType === 'VIP'
-    const isDisabled = space.areaType === '残疾人车位'
     const isOccupied = space.status === 1
 
-    let color = COLORS.spaceFree
-    if (isVip) color = COLORS.spaceVip
-    else if (isDisabled) color = COLORS.spaceDisabled
-    if (isOccupied) color = COLORS.spaceOccupied
+    // 按区域代码取基础色，占用时统一用红色
+    const areaCode = (space.areaCode || 'A').toUpperCase()
+    let color
+    if (isOccupied) {
+      color = AREA_COLORS_OCCUPIED[areaCode] || COLORS.spaceOccupied
+    } else {
+      color = AREA_COLORS[areaCode] || COLORS.spaceFree
+    }
 
     // 使用仿真混凝土材质
     const mat = createSpaceMaterial(color)
@@ -1215,7 +1217,7 @@ export function useParkingBuilder(scene, materials, spaceMeshes, carMeshes) {
     group.add(lines)
 
     // 编号标签（根据类型显示不同颜色）
-    const label = createGroundLabel(space.spaceCode, isVip, isDisabled)
+    const label = createGroundLabel(space.spaceCode, false, false)
     // 标签高度由createGroundLabel内部设置，此处只需设置x,z位置
 
     // 根据朝向旋转标签
@@ -1235,18 +1237,6 @@ export function useParkingBuilder(scene, materials, spaceMeshes, carMeshes) {
     }
     group.add(label)
 
-    // VIP/残疾人标识牌
-    if (isVip || isDisabled) {
-      const signText = isVip ? 'VIP' : '♿'
-      const sign = createGroundLabel(signText, isVip, isDisabled)
-      sign.scale.set(0.6, 0.6, 0.6)
-      // 仅设置x,z位置，y由createGroundLabel内部控制
-      sign.position.set(0, 0, -spaceDepth / 4)
-      if (facing === 's' || facing === 'south') sign.rotation.z = Math.PI
-      else if (facing === 'e' || facing === 'east') sign.rotation.z = -Math.PI / 2
-      else if (facing === 'w' || facing === 'west') sign.rotation.z = Math.PI / 2
-      group.add(sign)
-    }
 
     // 状态灯（改进版）
     const light = createStatusLight(color)
@@ -1272,9 +1262,8 @@ export function useParkingBuilder(scene, materials, spaceMeshes, carMeshes) {
     }
     group.add(light)
 
-    // 精致车辆模型 - 占用状态显示车辆，或每5个车位显示一个测试车辆
-    const showTestCar = !isOccupied && (spaceIndex % 5 === 0)
-    if (isOccupied || showTestCar) {
+    // 仅占用状态显示车辆
+    if (isOccupied) {
       const car = createCar(space.areaType)
 
       // 根据车位类型和方向计算合适的汽车比例

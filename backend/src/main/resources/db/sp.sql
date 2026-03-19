@@ -192,3 +192,34 @@ END;;
 DELIMITER ;
 
 -- ==================== 创建触发器（已移除，统计从space表实时计算） ====================
+
+-- ----------------------------
+-- Table structure for operation_log
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `operation_log` (
+  `log_id` bigint NOT NULL AUTO_INCREMENT COMMENT '日志ID',
+  `operator_type` int NULL DEFAULT NULL COMMENT '操作者类型 1-管理员 2-普通用户',
+  `operator_id` bigint NULL DEFAULT NULL COMMENT '操作者ID',
+  `operator_name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '操作者姓名',
+  `module` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '模块名称',
+  `operation` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '操作类型',
+  `request_method` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '请求方法',
+  `request_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '请求URL',
+  `status` int NULL DEFAULT NULL COMMENT '操作状态 1-成功 0-失败',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`log_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '操作日志表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for sys_notice
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `sys_notice` (
+  `notice_id` bigint NOT NULL AUTO_INCREMENT COMMENT '公告ID',
+  `title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '标题',
+  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT '内容',
+  `notice_type` int NULL DEFAULT 1 COMMENT '公告类型 1-通知 2-公告 3-提醒',
+  `is_top` int NULL DEFAULT 0 COMMENT '是否置顶 0-否 1-是',
+  `status` int NULL DEFAULT 1 COMMENT '状态 0-禁用 1-启用',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`notice_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '系统公告表' ROW_FORMAT = Dynamic;

@@ -7,38 +7,42 @@
         <result column="plate_number" property="plateNumber"/>
         <result column="space_id" property="spaceId"/>
         <result column="entry_time" property="entryTime"/>
-        <result column="entry_gate" property="entryGate"/>
         <result column="exit_time" property="exitTime"/>
-        <result column="exit_gate" property="exitGate"/>
-        <result column="parking_minutes" property="parkingMinutes"/>
         <result column="fee_amount" property="feeAmount"/>
-        <result column="payable_amount" property="payableAmount"/>
-        <result column="paid_amount" property="paidAmount"/>
         <result column="pay_status" property="payStatus"/>
         <result column="pay_time" property="payTime"/>
-        <result column="pay_method" property="payMethod"/>
-        <result column="status" property="status"/>
         <result column="space_code" property="spaceCode"/>
     </resultMap>
 
     <select id="selectPageWithDetail" resultMap="BaseResultMap">
         SELECT r.record_id, r.plate_number, r.space_id,
-               r.entry_time, r.entry_gate,
-               r.exit_time, r.exit_gate,
-               r.parking_minutes, r.fee_amount, r.payable_amount, r.paid_amount,
-               r.pay_status, r.pay_time, r.pay_method, r.status,
+               r.entry_time, r.exit_time,
+               r.fee_amount, r.pay_status, r.pay_time,
                s.space_code
         FROM parking_record r
-        INNER JOIN parking_space s ON r.space_id = s.space_id
+        LEFT JOIN parking_space s ON r.space_id = s.space_id
         <where>
             <if test="plateNumber != null and plateNumber != ''">
                 AND r.plate_number LIKE CONCAT('%', #{plateNumber}, '%')
             </if>
             <if test="status != null">
-                AND r.status = #{status}
+                <choose>
+                    <when test="status == 0">
+                        AND r.exit_time IS NULL
+                    </when>
+                    <otherwise>
+                        AND r.exit_time IS NOT NULL
+                    </otherwise>
+                </choose>
             </if>
             <if test="payStatus != null">
                 AND r.pay_status = #{payStatus}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND DATE(r.entry_time) &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND DATE(r.entry_time) &lt;= #{endDate}
             </if>
         </where>
         ORDER BY r.entry_time DESC
@@ -58,8 +62,8 @@
         SELECT
             DATE(entry_time) as date,
             COUNT(*) as entryCount,
-            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as exitCount,
-            COALESCE(SUM(paid_amount), 0) as revenue
+            SUM(CASE WHEN exit_time IS NOT NULL THEN 1 ELSE 0 END) as exitCount,
+            COALESCE(SUM(fee_amount), 0) as revenue
         FROM parking_record
         WHERE DATE(entry_time) BETWEEN #{startDate} AND #{endDate}
         GROUP BY DATE(entry_time)
@@ -70,7 +74,7 @@
         SELECT
             '全部区域' as areaName,
             COUNT(*) as count,
-            COALESCE(SUM(paid_amount), 0) as revenue
+            COALESCE(SUM(fee_amount), 0) as revenue
         FROM parking_record
         WHERE DATE(entry_time) = CURDATE()
     </select>

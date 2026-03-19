@@ -68,29 +68,6 @@
         </div>
 
         <div class="header-right">
-          <!-- 搜索 -->
-          <div class="search-bar" :class="{ expanded: searchExpanded }">
-            <el-icon class="search-icon"><Search /></el-icon>
-            <el-input
-              v-show="searchExpanded"
-              v-model="searchQuery"
-              placeholder="搜索功能、数据..."
-              clearable
-            />
-          </div>
-
-          <!-- 快捷操作 -->
-          <div class="quick-actions">
-            <div class="action-icon" @click="toggleFullscreen">
-              <el-icon><FullScreen /></el-icon>
-            </div>
-            <div class="action-icon" @click="toggleTheme">
-              <el-icon><Sunny v-if="isDark" /><Moon v-else /></el-icon>
-            </div>
-            <el-badge :value="3" class="action-icon notification">
-              <el-icon><Bell /></el-icon>
-            </el-badge>
-          </div>
 
           <!-- 用户菜单 -->
           <div class="user-menu" ref="userMenuRef">
@@ -186,7 +163,7 @@ const menuItems = computed(() => {
       { path: '/dashboard', title: '数据大屏', icon: 'Odometer' },
       { path: '/records', title: '停车记录', icon: 'Document' },
       { path: '/spaces', title: '车位管理', icon: 'MapLocation' },
-      { path: '/simulation', title: '仿真系统', icon: 'VideoCamera' },
+      { path: '/simulation', title: '车牌检测', icon: 'VideoCamera' },
       { path: '/settings', title: '系统设置', icon: 'Setting' }
     ]
   }

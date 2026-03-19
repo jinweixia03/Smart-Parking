@@ -37,6 +37,8 @@
         </div>
       </template>
 
+      <!-- 内容区域 -->
+      <div class="record-content">
       <!-- 统计卡片 -->
     <div class="stats-cards">
       <div class="stat-card" v-for="(stat, index) in stats" :key="index" :style="{ animationDelay: `${index * 100}ms` }">
@@ -47,7 +49,7 @@
           <span class="stat-value">{{ stat.value }}</span>
           <span class="stat-label">{{ stat.label }}</span>
         </div>
-        <div class="stat-trend" :class="stat.trend">
+        <div v-if="stat.showTrend" class="stat-trend" :class="stat.trend">
           <el-icon><ArrowUp v-if="stat.trend === 'up'" /><ArrowDown v-else /></el-icon>
           <span>{{ stat.trendValue }}%</span>
         </div>
@@ -81,17 +83,18 @@
       </div>
 
       <!-- 列表视图 -->
-      <div v-show="viewMode === 'list'" class="table-wrapper">
+      <div v-if="viewMode === 'list'" class="table-wrapper">
         <el-table
           :data="filteredRecords"
           v-loading="loading"
           stripe
+          height="100%"
           style="width: 100%"
           :header-cell-style="headerStyle"
         >
-          <el-table-column type="index" label="#" width="60" align="center" />
+          <el-table-column type="index" label="#" width="50" align="center" />
 
-          <el-table-column label="车牌号" width="140">
+          <el-table-column label="车牌号" width="120">
             <template #default="{ row }">
               <div class="plate-tag">
                 <span class="plate-text">{{ row.plateNumber }}</span>
@@ -99,13 +102,13 @@
             </template>
           </el-table-column>
 
-          <el-table-column prop="spaceCode" label="车位" width="100" align="center">
+          <el-table-column prop="spaceCode" label="车位" width="90" align="center" class-name="col-space">
             <template #default="{ row }">
               <span class="space-code">{{ row.spaceCode }}</span>
             </template>
           </el-table-column>
 
-          <el-table-column label="入场时间" width="180">
+          <el-table-column label="入场时间" width="160" class-name="col-time">
             <template #default="{ row }">
               <div class="time-cell">
                 <el-icon><Calendar /></el-icon>
@@ -114,7 +117,7 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="出场时间" width="180">
+          <el-table-column label="出场时间" width="160" class-name="col-time">
             <template #default="{ row }">
               <div class="time-cell" v-if="row.exitTime">
                 <el-icon><Timer /></el-icon>
@@ -124,28 +127,24 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="停车时长" width="120" align="center">
+          <el-table-column label="停车时长" width="110" align="center" class-name="col-duration">
             <template #default="{ row }">
-              <span class="duration">{{ formatDuration(row.parkingMinutes) }}</span>
+              <span class="duration">{{ formatDuration(row) }}</span>
             </template>
           </el-table-column>
 
-          <el-table-column label="费用" width="180">
+          <el-table-column label="费用" width="140" class-name="col-fee">
             <template #default="{ row }">
               <div class="fee-cell">
                 <div class="fee-row">
-                  <span class="fee-label">应付:</span>
-                  <span class="fee-value">¥{{ row.payableAmount?.toFixed(2) }}</span>
-                </div>
-                <div class="fee-row" v-if="row.paidAmount > 0">
-                  <span class="fee-label">实付:</span>
-                  <span class="fee-value paid">¥{{ row.paidAmount?.toFixed(2) }}</span>
+                  <span class="fee-label">费用:</span>
+                  <span class="fee-value">¥{{ row.feeAmount?.toFixed(2) || '0.00' }}</span>
                 </div>
               </div>
             </template>
           </el-table-column>
 
-          <el-table-column label="状态" width="100" align="center" fixed="right">
+          <el-table-column label="状态" width="100" align="center">
             <template #default="{ row }">
               <div class="status-tag" :class="getStatusClass(row)">
                 <span class="status-dot"></span>
@@ -154,7 +153,7 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="操作" width="100" align="center" fixed="right">
+          <el-table-column label="操作" width="80" align="center">
             <template #default="{ row }">
               <el-dropdown trigger="click">
                 <button class="action-menu-btn">
@@ -177,10 +176,10 @@
       </div>
 
       <!-- 卡片视图 -->
-      <div v-show="viewMode === 'card'" class="card-view">
+      <div v-else-if="viewMode === 'card'" class="card-view">
         <div
           v-for="(record, index) in filteredRecords"
-          :key="record.id"
+          :key="record.recordId"
           class="record-card"
           :style="{ animationDelay: `${index * 50}ms` }"
         >
@@ -205,13 +204,13 @@
             </div>
             <div class="info-row">
               <span class="label">时长</span>
-              <span class="value duration">{{ formatDuration(record.parkingMinutes) }}</span>
+              <span class="value duration">{{ formatDuration(record) }}</span>
             </div>
           </div>
           <div class="card-footer">
             <div class="fee-section">
-              <span class="fee-amount">¥{{ record.paidAmount?.toFixed(2) || '0.00' }}</span>
-              <span class="fee-label">实付金额</span>
+              <span class="fee-amount">¥{{ record.feeAmount?.toFixed(2) || '0.00' }}</span>
+              <span class="fee-label">停车费用</span>
             </div>
             <button class="detail-btn" @click="viewDetail(record)">查看详情</button>
           </div>
@@ -230,6 +229,7 @@
           @size-change="fetchRecords"
         />
       </div>
+    </div>
     </div>
 
     <!-- 详情弹窗 -->
@@ -262,23 +262,15 @@
           </div>
           <div class="detail-item">
             <span class="label">停车时长</span>
-            <span class="value">{{ formatDuration(currentRecord.parkingMinutes) }}</span>
+            <span class="value">{{ formatDuration(currentRecord) }}</span>
           </div>
           <div class="detail-item">
-            <span class="label">应付金额</span>
-            <span class="value">¥{{ currentRecord.payableAmount?.toFixed(2) }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">实付金额</span>
-            <span class="value highlight">¥{{ currentRecord.paidAmount?.toFixed(2) }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">支付方式</span>
-            <span class="value">{{ currentRecord.payMethod || '微信' }}</span>
+            <span class="label">停车费用</span>
+            <span class="value">¥{{ currentRecord.feeAmount?.toFixed(2) || '0.00' }}</span>
           </div>
           <div class="detail-item">
             <span class="label">记录编号</span>
-            <span class="value">{{ currentRecord.id }}</span>
+            <span class="value">{{ currentRecord.recordId }}</span>
           </div>
         </div>
       </div>
@@ -288,12 +280,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import {
   Document, Search, Refresh, Download, ArrowUp, ArrowDown,
-  List, Grid, Calendar, Timer, MoreFilled, View, Printer
+  List, Grid, Calendar, Timer, MoreFilled, View, Printer,
+  Van, User, Money
 } from '@element-plus/icons-vue'
-import { getRecords } from '@/api/parking'
+import { getRecords, getTodayStats } from '@/api/parking'
 import { ElMessage } from 'element-plus'
 
 // ==================== 状态管理 ====================
@@ -309,33 +302,73 @@ const viewMode = ref('list')
 const detailVisible = ref(false)
 const currentRecord = ref(null)
 
-// 统计
+// 统计（从数据库加载）
 const stats = ref([
-  { icon: 'Car', label: '今日停车', value: 128, trend: 'up', trendValue: 12, bgColor: 'linear-gradient(135deg, #3b82f6, #2563eb)' },
-  { icon: 'Money', label: '今日收入', value: '¥2,846', trend: 'up', trendValue: 8, bgColor: 'linear-gradient(135deg, #10b981, #059669)' },
-  { icon: 'Timer', label: '平均时长', value: '2.5h', trend: 'down', trendValue: 5, bgColor: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-  { icon: 'User', label: '活跃车辆', value: 86, trend: 'up', trendValue: 15, bgColor: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' }
+  { icon: 'Van', label: '今日停车', value: 0, trend: 'up', trendValue: 0, showTrend: false, bgColor: 'linear-gradient(135deg, #3b82f6, #2563eb)' },
+  { icon: 'Money', label: '今日收入', value: '¥0', trend: 'up', trendValue: 0, showTrend: false, bgColor: 'linear-gradient(135deg, #10b981, #059669)' },
+  { icon: 'Timer', label: '平均时长', value: '0h', trend: 'down', trendValue: 0, showTrend: false, bgColor: 'linear-gradient(135deg, #f59e0b, #d97706)' },
+  { icon: 'User', label: '活跃车辆', value: 0, trend: 'up', trendValue: 0, showTrend: false, bgColor: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' }
 ])
 
-// 标签
-const tabs = [
-  { key: 'all', label: '全部记录', count: 0 },
-  { key: 'active', label: '停车中', count: 12 },
-  { key: 'completed', label: '已完成', count: 156 },
-  { key: 'unpaid', label: '未支付', count: 3 }
-]
+// 加载统计数据
+const loadStats = async () => {
+  try {
+    const data = await getTodayStats()
+    stats.value[0].value = data.entryCount || 0
+    stats.value[0].trendValue = data.entryTrend || 0
+    stats.value[0].trend = data.entryTrend >= 0 ? 'up' : 'down'
 
-// 过滤后的记录
-const filteredRecords = computed(() => {
-  let result = records.value
-  if (currentTab.value === 'active') {
-    result = result.filter(r => r.status === 0)
-  } else if (currentTab.value === 'completed') {
-    result = result.filter(r => r.status === 1 && r.payStatus === 1)
-  } else if (currentTab.value === 'unpaid') {
-    result = result.filter(r => r.status === 1 && r.payStatus === 0)
+    stats.value[1].value = '¥' + (data.revenue || 0).toLocaleString()
+    stats.value[1].trendValue = Math.abs(data.revenueTrend || 0)
+    stats.value[1].trend = data.revenueTrend >= 0 ? 'up' : 'down'
+
+    stats.value[2].value = (data.avgHours || 0) + 'h'
+
+    stats.value[3].value = data.activeCount || 0
+  } catch (e) {
+    console.error('加载统计数据失败', e)
   }
-  return result
+}
+
+// 标签
+const tabs = ref([
+  { key: 'all', label: '全部记录', count: 0 },
+  { key: 'active', label: '停车中', count: 0 },
+  { key: 'completed', label: '已完成', count: 0 },
+  { key: 'unpaid', label: '未支付', count: 0 }
+])
+
+// 加载各标签统计数量
+const loadTabCounts = async () => {
+  try {
+    const [allRes, activeRes, unpaidRes, exitedRes] = await Promise.all([
+      getRecords({ page: 1, size: 1 }),
+      getRecords({ page: 1, size: 1, status: 0 }),
+      getRecords({ page: 1, size: 1, status: 1, payStatus: 0 }),
+      getRecords({ page: 1, size: 1, status: 1 })
+    ])
+    tabs.value[0].count = allRes.total || 0
+    tabs.value[1].count = activeRes.total || 0
+    tabs.value[2].count = Math.max(0, (exitedRes.total || 0) - (unpaidRes.total || 0))
+    tabs.value[3].count = unpaidRes.total || 0
+  } catch (e) {
+    console.error('加载标签统计失败', e)
+  }
+}
+
+// 根据 tab 换算为后端参数
+const tabToParams = (tab) => {
+  if (tab === 'active') return { status: 0 }
+  if (tab === 'completed') return { status: 1, payStatus: 1 }
+  if (tab === 'unpaid') return { status: 1, payStatus: 0 }
+  return {}
+}
+
+const filteredRecords = computed(() => records.value)
+
+watch(currentTab, () => {
+  page.value = 1
+  fetchRecords()
 })
 
 // 表格头部样式
@@ -350,51 +383,39 @@ const headerStyle = {
 const fetchRecords = async () => {
   loading.value = true
   try {
-    const res = await getRecords({
+    const params = {
       page: page.value,
       size: size.value,
-      plateNumber: searchForm.value.plateNumber
-    })
+      plateNumber: searchForm.value.plateNumber,
+      ...tabToParams(currentTab.value)
+    }
+    if (dateRange.value && dateRange.value.length === 2) {
+      params.startDate = dateRange.value[0].toISOString().slice(0, 10)
+      params.endDate = dateRange.value[1].toISOString().slice(0, 10)
+    }
+    const res = await getRecords(params)
     records.value = res.records || []
     total.value = res.total || 0
   } catch (error) {
     console.error(error)
-    generateMockData()
+    ElMessage.error('加载停车记录失败，请检查网络连接')
+    records.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
 }
 
-const generateMockData = () => {
-  const mockData = []
-  for (let i = 1; i <= 32; i++) {
-    const isActive = Math.random() > 0.7
-    mockData.push({
-      id: `REC${String(i).padStart(6, '0')}`,
-      plateNumber: `京A${Math.floor(Math.random() * 90000 + 10000)}`,
-      spaceCode: `F1-A${String(Math.floor(Math.random() * 18) + 1).padStart(2, '0')}`,
-      entryTime: new Date(Date.now() - Math.random() * 86400000 * 3).toISOString(),
-      exitTime: isActive ? null : new Date(Date.now() - Math.random() * 3600000).toISOString(),
-      parkingMinutes: isActive ? Math.floor(Math.random() * 300) : Math.floor(Math.random() * 600 + 30),
-      payableAmount: Math.floor(Math.random() * 50 + 10),
-      paidAmount: isActive ? 0 : Math.floor(Math.random() * 50 + 10),
-      payStatus: isActive ? 0 : 1,
-      status: isActive ? 0 : 1
-    })
-  }
-  records.value = mockData
-  total.value = 156
-}
 
 const getStatusClass = (row) => {
-  if (row.status === 0) return 'active'
-  if (row.payStatus === 1) return 'completed'
+  if (!row.exitTime) return 'active'
+  if (row.payStatus === 1 || row.payStatus === 2) return 'completed'
   return 'unpaid'
 }
 
 const getStatusText = (row) => {
-  if (row.status === 0) return '停车中'
-  if (row.payStatus === 1) return '已完成'
+  if (!row.exitTime) return '停车中'
+  if (row.payStatus === 1 || row.payStatus === 2) return '已完成'
   return '未支付'
 }
 
@@ -409,8 +430,11 @@ const formatDateTime = (dateStr) => {
   })
 }
 
-const formatDuration = (minutes) => {
-  if (!minutes) return '--'
+const formatDuration = (row) => {
+  if (!row.entryTime) return '--'
+  const start = new Date(row.entryTime)
+  const end = row.exitTime ? new Date(row.exitTime) : new Date()
+  const minutes = Math.floor((end - start) / (1000 * 60))
   if (minutes < 60) return `${minutes}分钟`
   const hours = Math.floor(minutes / 60)
   const mins = minutes % 60
@@ -424,6 +448,8 @@ const handleDateChange = () => {
 
 const refreshData = () => {
   fetchRecords()
+  loadStats()
+  loadTabCounts()
   ElMessage.success('数据已刷新')
 }
 
@@ -442,6 +468,8 @@ const printRecord = (row) => {
 
 onMounted(() => {
   fetchRecords()
+  loadStats()
+  loadTabCounts()
 })
 </script>
 
@@ -488,6 +516,15 @@ onMounted(() => {
     gap: 12px;
     flex-wrap: wrap;
   }
+
+  .record-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow: hidden;
+  }
 }
 
 // 统计卡片
@@ -495,7 +532,6 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  margin-bottom: 16px;
   flex-shrink: 0;
 }
 
@@ -572,10 +608,12 @@ onMounted(() => {
   @include glass-glacier;
   border-radius: 16px;
   padding: 16px 20px;
+  width: 100%;
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
 
   .table-header {
     display: flex;
@@ -583,10 +621,12 @@ onMounted(() => {
     align-items: center;
     margin-bottom: 12px;
     flex-shrink: 0;
+    gap: 12px;
 
     .table-tabs {
       display: flex;
       gap: 6px;
+      flex-wrap: wrap;
 
       .tab-btn {
         position: relative;
@@ -633,14 +673,41 @@ onMounted(() => {
 .table-wrapper {
   flex: 1;
   overflow: hidden;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+
+  :deep(.el-table) {
+    width: 100% !important;
+    flex: 1;
+    height: 100% !important;
+
+    .el-table__inner-wrapper {
+      height: 100%;
+    }
+
+    .el-table__body-wrapper {
+      flex: 1;
+      overflow-y: auto;
+    }
+  }
 }
 
 // 表格样式
 :deep(.el-table) {
+  width: 100% !important;
   background: transparent;
   border-radius: 12px;
   overflow: hidden;
   flex: 1;
+
+  .el-table__header,
+  .el-table__body,
+  .el-table__footer {
+    width: 100% !important;
+    table-layout: fixed !important;
+  }
 
   .el-table__header-wrapper {
     th {
@@ -650,6 +717,10 @@ onMounted(() => {
       font-size: 12px;
       padding: 10px 8px;
     }
+
+    .cell {
+      width: 100% !important;
+    }
   }
 
   .el-table__body-wrapper {
@@ -657,10 +728,22 @@ onMounted(() => {
       padding: 10px 8px;
       color: #475569;
       font-size: 13px;
+
+      .cell {
+        width: 100% !important;
+        padding: 0 4px;
+      }
     }
 
     tr:hover > td {
       background: rgba(59, 130, 246, 0.05) !important;
+    }
+  }
+
+  // 响应式：小屏幕下固定列保持显示
+  @media (max-width: 1200px) {
+    .el-table__body-wrapper {
+      overflow-x: auto;
     }
   }
 }
@@ -798,11 +881,17 @@ onMounted(() => {
 }
 
 // 卡片视图
+// 卡片视图
 .card-view {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
   padding: 4px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  align-content: start;
+  position: relative;
 }
 
 .record-card {
@@ -987,25 +1076,62 @@ onMounted(() => {
 }
 
 // 响应式
+@media (max-width: 1400px) {
+  .stats-cards {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
 @media (max-width: 1200px) {
   .stats-cards {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  // 中等屏幕：卡片视图改为2列
+  .card-view {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  // 中等屏幕：隐藏车位、时长、入场时间列
+  :deep(.el-table) {
+    .col-space,
+    .col-duration,
+    .col-time:nth-child(3) {
+      display: none !important;
+    }
+  }
+
+  .data-table-container {
+    padding: 12px 16px;
+  }
+}
+
+@media (max-width: 992px) {
+  // 小屏幕：隐藏出场时间列
+  :deep(.el-table) {
+    .col-time {
+      display: none !important;
+    }
   }
 }
 
 @media (max-width: 768px) {
   .record-manage {
     padding: 16px;
+
+    :deep(.el-card__body) {
+      padding: 12px;
+    }
   }
 
   .card-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
 
     .header-actions {
       width: 100%;
-      flex-direction: column;
-      align-items: stretch;
+      flex-wrap: wrap;
 
       .el-input,
       .el-date-picker {
@@ -1014,13 +1140,43 @@ onMounted(() => {
     }
   }
 
+  .record-content {
+    gap: 12px;
+  }
+
   .stats-cards {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 8px;
+
+    .stat-card {
+      padding: 10px 12px;
+
+      .stat-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+      }
+
+      .stat-content {
+        .stat-value {
+          font-size: 16px;
+        }
+
+        .stat-label {
+          font-size: 11px;
+        }
+      }
+
+      .stat-trend {
+        padding: 2px 6px;
+        font-size: 10px;
+      }
+    }
   }
 
   .data-table-container {
     padding: 12px;
+    border-radius: 12px;
   }
 
   .table-header {
@@ -1030,27 +1186,141 @@ onMounted(() => {
 
     .table-tabs {
       flex-wrap: wrap;
+      width: 100%;
+
+      .tab-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+        flex: 1;
+        min-width: 70px;
+      }
     }
   }
 
+  // 手机端：只显示车牌、费用、状态、操作
   :deep(.el-table) {
+    .col-space,
+    .col-time,
+    .col-duration {
+      display: none !important;
+    }
+
     .el-table__header-wrapper th,
     .el-table__body-wrapper td {
       padding: 8px 4px;
+      font-size: 12px;
+    }
+
+    .plate-tag {
+      padding: 4px 8px;
       font-size: 12px;
     }
   }
 
   .card-view {
     grid-template-columns: 1fr;
+    gap: 12px;
+
+    .record-card {
+      padding: 16px;
+    }
   }
 
   .table-pagination {
     justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .table-wrapper {
-    overflow-x: auto;
+    overflow-x: hidden;
+  }
+
+  .fee-cell {
+    .fee-row {
+      gap: 4px;
+
+      .fee-label {
+        font-size: 10px;
+      }
+
+      .fee-value {
+        font-size: 12px;
+      }
+    }
+  }
+
+  .status-tag {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .action-menu-btn {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .record-manage {
+    padding: 12px;
+
+    :deep(.el-card__body) {
+      padding: 8px;
+    }
+  }
+
+  .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+
+    .stat-card {
+      padding: 8px;
+      gap: 8px;
+
+      .stat-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+      }
+
+      .stat-content {
+        .stat-value {
+          font-size: 14px;
+        }
+
+        .stat-label {
+          font-size: 10px;
+        }
+      }
+    }
+  }
+
+  .data-table-container {
+    padding: 10px;
+  }
+
+  .table-header .table-tabs {
+    .tab-btn {
+      padding: 5px 8px;
+      font-size: 11px;
+    }
+  }
+
+  :deep(.el-table) {
+    .col-fee {
+      width: 100px !important;
+    }
+
+    .fee-cell {
+      .fee-row:first-child {
+        display: none; // 隐藏应付金额
+      }
+    }
+  }
+
+  .record-content {
+    gap: 10px;
   }
 }
 </style>

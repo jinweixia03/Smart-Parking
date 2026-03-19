@@ -18,7 +18,7 @@ import java.util.Map;
 @Mapper
 public interface ParkingRecordMapper extends BaseMapper<ParkingRecord> {
 
-    @Select("SELECT * FROM parking_record WHERE plate_number = #{plateNumber} AND status = 0 ORDER BY entry_time DESC LIMIT 1")
+    @Select("SELECT * FROM parking_record WHERE plate_number = #{plateNumber} AND exit_time IS NULL ORDER BY entry_time DESC LIMIT 1")
     ParkingRecord selectActiveByPlate(String plateNumber);
 
     @Select("SELECT * FROM parking_record WHERE plate_number = #{plateNumber} ORDER BY entry_time DESC")
@@ -27,30 +27,39 @@ public interface ParkingRecordMapper extends BaseMapper<ParkingRecord> {
     Page<ParkingRecord> selectPageWithDetail(Page<ParkingRecord> page,
                                               @Param("plateNumber") String plateNumber,
                                               @Param("status") Integer status,
-                                              @Param("payStatus") Integer payStatus);
+                                              @Param("payStatus") Integer payStatus,
+                                              @Param("startDate") String startDate,
+                                              @Param("endDate") String endDate);
 
-    @Update("UPDATE parking_record SET exit_time = NOW(), exit_gate = #{gate}, " +
-            "parking_minutes = #{minutes}, fee_amount = #{fee}, payable_amount = #{payable}, " +
-            "status = 1 WHERE record_id = #{recordId}")
-    void completeExit(@Param("recordId") Long recordId, @Param("gate") String gate,
-                      @Param("minutes") Integer minutes, @Param("fee") BigDecimal fee,
-                      @Param("payable") BigDecimal payable);
-
-    @Update("UPDATE parking_record SET pay_status = 1, pay_time = NOW(), paid_amount = #{amount} " +
+    @Update("UPDATE parking_record SET exit_time = NOW(), fee_amount = #{fee} " +
             "WHERE record_id = #{recordId}")
-    void updatePayment(@Param("recordId") Long recordId, @Param("amount") BigDecimal amount);
+    void completeExit(@Param("recordId") Long recordId,
+                      @Param("fee") BigDecimal fee);
+
+    @Update("UPDATE parking_record SET pay_status = 1, pay_time = NOW() " +
+            "WHERE record_id = #{recordId}")
+    void updatePayment(@Param("recordId") Long recordId);
 
     @Select("SELECT COUNT(*) FROM parking_record WHERE DATE(entry_time) = CURDATE()")
     int countTodayEntry();
 
-    @Select("SELECT COUNT(*) FROM parking_record WHERE DATE(exit_time) = CURDATE() AND status = 1")
+    @Select("SELECT COUNT(*) FROM parking_record WHERE DATE(entry_time) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)")
+    int countYesterdayEntry();
+
+    @Select("SELECT COUNT(*) FROM parking_record WHERE DATE(exit_time) = CURDATE() AND exit_time IS NOT NULL")
     int countTodayExit();
 
-    @Select("SELECT COALESCE(SUM(paid_amount), 0) FROM parking_record WHERE DATE(pay_time) = CURDATE() AND pay_status = 1")
+    @Select("SELECT COALESCE(SUM(fee_amount), 0) FROM parking_record WHERE DATE(pay_time) = CURDATE() AND pay_status = 1")
     BigDecimal sumTodayRevenue();
 
-    @Select("SELECT COUNT(*) FROM parking_record WHERE status = 0")
+    @Select("SELECT COALESCE(SUM(fee_amount), 0) FROM parking_record WHERE DATE(pay_time) = DATE_SUB(CURDATE(), INTERVAL 1 DAY) AND pay_status = 1")
+    BigDecimal sumYesterdayRevenue();
+
+    @Select("SELECT COUNT(*) FROM parking_record WHERE exit_time IS NULL")
     int countActiveParking();
+
+    @Select("SELECT COALESCE(AVG(TIMESTAMPDIFF(MINUTE, entry_time, exit_time)), 0) FROM parking_record WHERE DATE(entry_time) = CURDATE() AND exit_time IS NOT NULL")
+    double avgTodayParkingMinutes();
 
     List<Map<String, Object>> selectHourlyStats(@Param("date") String date);
 

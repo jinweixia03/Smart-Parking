@@ -41,7 +41,7 @@ public interface ParkingRecordService extends IService<ParkingRecord> {
     /**
      * 分页查询停车记录
      */
-    Page<ParkingRecord> pageRecords(Page<ParkingRecord> page, String plateNumber, Integer status, Integer payStatus);
+    Page<ParkingRecord> pageRecords(Page<ParkingRecord> page, String plateNumber, Integer status, Integer payStatus, String startDate, String endDate);
 
     /**
      * 根据车牌号查询停车记录

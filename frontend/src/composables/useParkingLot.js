@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { FLOORS, COLORS, LAYOUT, SPACE_STATUS, SPACE_TYPES } from '@/constants/parking.js'
-import { getSpaces } from '@/api/parking.js'
+import { getSpaces, getCurrentParking } from '@/api/parking.js'
 
 export function useParkingLot() {
   const spaces = ref([])
@@ -74,8 +74,19 @@ export function useParkingLot() {
     selectedSpace.value = null
   }
 
-  function selectSpace(space) {
-    selectedSpace.value = space
+  async function selectSpace(space) {
+    selectedSpace.value = { ...space }
+    // 占用中的车位，补充查询入场时间
+    if (space.status === SPACE_STATUS.OCCUPIED && space.currentPlate) {
+      try {
+        const record = await getCurrentParking(space.currentPlate)
+        if (record) {
+          selectedSpace.value = { ...space, entryTime: record.entryTime, recordId: record.recordId }
+        }
+      } catch (e) {
+        // 查询失败不影响展示
+      }
+    }
   }
 
   function closeDetail() {

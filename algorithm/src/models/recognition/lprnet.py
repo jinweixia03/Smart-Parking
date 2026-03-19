@@ -77,14 +77,15 @@ class LPRNet(nn.Module):
         x = self.block1(x)         # [B, 128, 24, 94]
         x = F.max_pool2d(x, kernel_size=3, stride=(2, 1), padding=1)  # [B, 128, 12, 94]
         x = self.block2(x)         # [B, 256, 12, 94]
-        x = self.block3(x)         # [B, 256, 12, 94]
-        x = self.global_feat(x)    # [B, 256, 12, 94]
-        x = self.classifier(x)     # [B, num_classes, 12, 94]
+        x = F.max_pool2d(x, kernel_size=3, stride=(1, 2), padding=1)  # [B, 256, 12, 47] - 宽度下采样
+        x = self.block3(x)         # [B, 256, 12, 47]
+        x = self.global_feat(x)    # [B, 256, 12, 47]
+        x = self.classifier(x)     # [B, num_classes, 12, 47]
 
         # 转换为CTC格式 [T, B, C]
-        # T 应该是宽度方向 (W=94)，表示时间步长
-        x = x.mean(dim=2)          # [B, num_classes, 94] - 对高度维度求平均
-        x = x.permute(2, 0, 1)     # [94, B, num_classes] - [T, B, C]
+        # T 应该是宽度方向 (W=47)，表示时间步长
+        x = x.mean(dim=2)          # [B, num_classes, 47] - 对高度维度求平均
+        x = x.permute(2, 0, 1)     # [47, B, num_classes] - [T, B, C]
 
         return x
 
@@ -92,14 +93,16 @@ class LPRNet(nn.Module):
 class PlateRecognizer:
     """车牌识别器"""
 
-    # 字符集
+    # 字符集（与CCPD官方定义一致）
     CHARS = ['blank']  # CTC blank index = 0
-    CHARS += [str(i) for i in range(10)]  # 0-9
-    CHARS += [chr(i) for i in range(65, 91)]  # A-Z
     # 省份简称
     CHARS += ['皖', '沪', '津', '渝', '冀', '晋', '蒙', '辽', '吉', '黑',
               '苏', '浙', '京', '闽', '赣', '鲁', '豫', '鄂', '湘', '粤',
-              '桂', '琼', '川', '贵', '云', '藏', '陕', '甘', '青', '宁', '新']
+              '桂', '琼', '川', '贵', '云', '藏', '陕', '甘', '青', '宁', '新', '警', '学']
+    # 字母（无I/O）
+    CHARS += ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+    # 数字
+    CHARS += [str(i) for i in range(10)]
 
     def __init__(self, model_path: str = None, device: str = 'auto'):
         """

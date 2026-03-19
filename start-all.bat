@@ -8,9 +8,13 @@ echo.
 REM Set variables
 set "BACKEND_DIR=D:\1_Source\BSYCode\backend"
 set "FRONTEND_DIR=D:\1_Source\BSYCode\frontend"
+set "ALGORITHM_DIR=D:\1_Source\BSYCode\algorithm"
 set "MAVEN_CMD=D:\Environments\maven\apache-maven-3.9.10\bin\mvn.cmd"
+set "CONDA_DIR=D:\Environments\MiniConda3"
+set "CONDA_ENV=yolo"
 set "BACKEND_PORT=8080"
 set "FRONTEND_PORT=3000"
+set "ALGORITHM_PORT=5000"
 
 REM Check environment
 echo [Check environment...]
@@ -38,6 +42,13 @@ if %ERRORLEVEL% neq 0 (
 )
 echo [OK] Node.js
 
+if not exist "%CONDA_DIR%\envs\%CONDA_ENV%\python.exe" (
+    echo [ERROR] Conda env '%CONDA_ENV%' not found at %CONDA_DIR%\envs\%CONDA_ENV%
+    pause
+    exit /b 1
+)
+echo [OK] Conda env '%CONDA_ENV%'
+
 REM Stop old services
 echo.
 echo [Stop old services...]
@@ -59,14 +70,35 @@ for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":%FRONTEND_PORT%" ^| findstr
     taskkill /F /PID %%a >nul 2>&1
 )
 
+echo [Check port %ALGORITHM_PORT%]...
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":%ALGORITHM_PORT%" ^| findstr "LISTENING" 2^>nul') do (
+    echo [Stop PID: %%a]
+    taskkill /F /PID %%a >nul 2>&1
+)
+
 timeout /t 3 /nobreak >nul
 echo [OK] Old services stopped
+
+REM Start algorithm service
+echo.
+echo ============================================
+echo [1/3] Start Algorithm Service (Python)
+echo ============================================
+echo.
+
+set "PYTHON_EXE=%CONDA_DIR%\envs\%CONDA_ENV%\python.exe"
+echo [Start algorithm service with conda env '%CONDA_ENV%'...]
+start "SmartParking Algorithm" cmd /c "cd /d "%ALGORITHM_DIR%" && "%PYTHON_EXE%" app.py"
+
+echo [Wait 5 seconds...]
+timeout /t 5 /nobreak >nul
+echo [OK] Algorithm service started
 
 REM Start backend
 echo.
 echo ============================================
-echo [1/2] Start Backend
-===========================================
+echo [2/3] Start Backend
+echo ============================================
 echo.
 
 cd /d "%BACKEND_DIR%"
@@ -94,7 +126,7 @@ echo [OK] Backend started
 REM Start frontend
 echo.
 echo ============================================
-echo [2/2] Start Frontend
+echo [3/3] Start Frontend
 echo ============================================
 echo.
 
@@ -120,12 +152,13 @@ echo [OK] Frontend started
 REM Complete
 echo.
 echo ============================================
-echo [OK] Services started!
+echo [OK] All services started!
 echo ============================================
 echo.
 echo Access URL:
-echo   Frontend: http://localhost:%FRONTEND_PORT%
-echo   Backend:  http://localhost:%BACKEND_PORT%/api
+echo   Frontend:  http://localhost:%FRONTEND_PORT%
+echo   Backend:   http://localhost:%BACKEND_PORT%/api
+echo   Algorithm: http://localhost:%ALGORITHM_PORT%/api/health
 echo.
 echo Login:
 echo   admin / admin123
@@ -149,6 +182,9 @@ for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":%BACKEND_PORT%" ^| findstr 
     taskkill /F /PID %%a >nul 2>&1
 )
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":%FRONTEND_PORT%" ^| findstr "LISTENING" 2^>nul') do (
+    taskkill /F /PID %%a >nul 2>&1
+)
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":%ALGORITHM_PORT%" ^| findstr "LISTENING" 2^>nul') do (
     taskkill /F /PID %%a >nul 2>&1
 )
 

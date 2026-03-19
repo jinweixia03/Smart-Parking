@@ -19,9 +19,96 @@ from werkzeug.utils import secure_filename
 
 # 添加 src 目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
+import cv2
+import numpy as np
+import torch
+from pathlib import Path
+import numpy as np
+from models.detection.yolo_detector import PlateDetector
+from models.recognition.lprnet import PlateRecognizer
 
 app = Flask(__name__)
 CORS(app)
+
+# ============ CCPD 文件名解析 ============
+
+PROVINCES = ['皖', '沪', '津', '渝', '冀', '晋', '蒙', '辽', '吉', '黑',
+             '苏', '浙', '京', '闽', '赣', '鲁', '豫', '鄂', '湘', '粤',
+             '桂', '琼', '川', '贵', '云', '藏', '陕', '甘', '青', '宁', '新', '警', '学', 'O']
+ALPHABETS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'O']
+ADS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'O']
+
+
+def parse_ccpd_filename(filename):
+    """
+    从CCPD文件名解析车牌号和bbox
+    文件名格式: 区域-倾斜-bbox-四角点-车牌索引-亮度-模糊.jpg
+    bbox格式: x1&y1_x2&y2
+    车牌索引格式: p_a_d1_d2_d3_d4_d5
+    """
+    try:
+        name = Path(filename).stem
+        parts = name.split('-')
+        if len(parts) < 6:
+            return None, None
+
+        # 解析bbox (第2段: x1&y1_x2&y2)
+        bbox_part = parts[2]
+        corners = bbox_part.split('_')
+        x1, y1 = map(int, corners[0].split('&'))
+        x2, y2 = map(int, corners[1].split('&'))
+        bbox = [x1, y1, x2, y2]
+
+        # 解析车牌号 (第4段)
+        plate_part = parts[4]
+        indices = list(map(int, plate_part.split('_')))
+        plate = PROVINCES[indices[0]] + ALPHABETS[indices[1]]
+        for idx in indices[2:]:
+            plate += ADS[idx]
+
+        return plate, bbox
+    except Exception:
+        return None, None
+
+
+# ============ 全局模型实例 ============
+detector = None
+recognizer = None
+
+
+def load_models():
+    """加载检测和识别模型"""
+    global detector, recognizer
+
+    # 模型路径
+    base_dir = Path(__file__).parent
+    det_model_path = base_dir / 'weights' / 'detection' / 'best.pt'
+    rec_model_path = base_dir / 'weights' / 'recognition' / 'best.pth'
+
+    # 加载检测模型
+    if det_model_path.exists():
+        try:
+            detector = PlateDetector(str(det_model_path), device='auto', conf_threshold=0.5)
+            print(f"检测模型加载成功: {det_model_path}")
+        except Exception as e:
+            print(f"检测模型加载失败: {e}")
+            detector = PlateDetector()  # 使用模拟模式
+    else:
+        print(f"检测模型不存在: {det_model_path}，使用模拟模式")
+        detector = PlateDetector()
+
+    # 加载识别模型
+    if rec_model_path.exists():
+        try:
+            recognizer = PlateRecognizer(str(rec_model_path), device='auto')
+            print(f"识别模型加载成功: {rec_model_path}")
+        except Exception as e:
+            print(f"识别模型加载失败: {e}")
+            recognizer = PlateRecognizer()  # 使用模拟模式
+    else:
+        print(f"识别模型不存在: {rec_model_path}，使用模拟模式")
+        recognizer = PlateRecognizer()
 
 # 配置
 UPLOAD_FOLDER = 'data/uploads'
@@ -79,19 +166,19 @@ def detect():
         start_time = time.time()
 
         try:
-            # TODO: 调用检测模型
-            # 模拟检测结果
+            # 加载图像
+            image = cv2.imread(filepath)
+            if image is None:
+                return jsonify(generate_response(400, "Failed to load image")), 400
+
+            # 调用检测模型
+            detections = detector.detect(image)
+
             result = {
                 "image_path": filepath,
-                "detections": [
-                    {
-                        "bbox": [100, 200, 300, 280],
-                        "confidence": 0.95,
-                        "class_id": 0
-                    }
-                ],
+                "detections": detections,
                 "detect_time": round((time.time() - start_time) * 1000, 2),
-                "detect_count": 1
+                "detect_count": len(detections)
             }
 
             return jsonify(generate_response(data=result))
@@ -123,14 +210,37 @@ def recognize():
         start_time = time.time()
 
         try:
-            # TODO: 调用检测+识别模型
-            # 模拟识别结果
+            # 加载图像
+            image = cv2.imread(filepath)
+            if image is None:
+                return jsonify(generate_response(400, "Failed to load image")), 400
+
+            # 1. 检测车牌
+            detections = detector.detect_and_crop(image)
+
+            if not detections:
+                return jsonify(generate_response(data={
+                    "image_path": filepath,
+                    "plate_number": None,
+                    "confidence": 0,
+                    "bbox": None,
+                    "total_time": round((time.time() - start_time) * 1000, 2),
+                    "message": "No plate detected"
+                }))
+
+            # 2. 识别车牌（取第一个检测到的车牌）
+            best_det = max(detections, key=lambda x: x['confidence'])
+            plate_crop = best_det['crop']
+            rec_result = recognizer.recognize(plate_crop)
+
             result = {
                 "image_path": filepath,
-                "plate_number": "京A12345",
-                "confidence": 0.92,
-                "bbox": [100, 200, 300, 280],
-                "total_time": round((time.time() - start_time) * 1000, 2)
+                "plate_number": rec_result['plate'],
+                "confidence": round(best_det['confidence'] * rec_result['confidence'], 4),
+                "bbox": best_det['bbox'],
+                "detect_confidence": round(best_det['confidence'], 4),
+                "rec_confidence": round(rec_result['confidence'], 4),
+                "total_time": round((time.time() - start_time) * 1000, 2),
             }
 
             return jsonify(generate_response(data=result))
@@ -163,16 +273,44 @@ def batch_recognize():
             start_time = time.time()
 
             try:
-                # TODO: 调用识别模型
-                result = {
-                    "image_path": filepath,
-                    "filename": file.filename,
-                    "plate_number": "京A12345",
-                    "confidence": 0.92,
-                    "time": round((time.time() - start_time) * 1000, 2)
-                }
-                total_time += result['time']
-                results.append(result)
+                # 加载图像
+                image = cv2.imread(filepath)
+                if image is None:
+                    results.append({
+                        "image_path": filepath,
+                        "filename": file.filename,
+                        "error": "Failed to load image"
+                    })
+                    continue
+
+                # 检测车牌
+                detections = detector.detect_and_crop(image)
+
+                if not detections:
+                    results.append({
+                        "image_path": filepath,
+                        "filename": file.filename,
+                        "plate_number": None,
+                        "confidence": 0,
+                        "time": round((time.time() - start_time) * 1000, 2)
+                    })
+                else:
+                    # 识别车牌
+                    best_det = max(detections, key=lambda x: x['confidence'])
+                    plate_crop = best_det['crop']
+                    rec_result = recognizer.recognize(plate_crop)
+
+                    result = {
+                        "image_path": filepath,
+                        "filename": file.filename,
+                        "plate_number": rec_result['plate'],
+                        "confidence": round(best_det['confidence'] * rec_result['confidence'], 4),
+                        "detect_confidence": round(best_det['confidence'], 4),
+                        "rec_confidence": round(rec_result['confidence'], 4),
+                        "time": round((time.time() - start_time) * 1000, 2)
+                    }
+                    total_time += result['time']
+                    results.append(result)
 
             except Exception as e:
                 results.append({
@@ -192,24 +330,53 @@ def batch_recognize():
 def parking_entry():
     """
     入场识别接口
-    模拟入场场景，返回车牌号
+    接收图片，识别车牌后返回车牌号
     """
-    data = request.get_json()
+    if 'image' not in request.files:
+        return jsonify(generate_response(400, "No image file provided")), 400
 
-    # 支持从CCPD数据集随机选取图片进行仿真
-    simulate_mode = data.get('simulate', False)
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify(generate_response(400, "Empty filename")), 400
+
+    if not (file and allowed_file(file.filename)):
+        return jsonify(generate_response(400, "Invalid file type")), 400
+
+    filename = f"{uuid.uuid4()}_{secure_filename(file.filename)}"
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
 
     start_time = time.time()
 
     try:
-        # TODO: 从CCPD数据集加载图片进行识别
-        # 模拟识别结果
+        image = cv2.imread(filepath)
+        if image is None:
+            return jsonify(generate_response(400, "Failed to load image")), 400
+
+        detections = detector.detect_and_crop(image)
+
+        if not detections:
+            return jsonify(generate_response(data={
+                "plate_number": None,
+                "confidence": 0,
+                "entry_time": datetime.now().isoformat(),
+                "image_path": filepath,
+                "total_time": round((time.time() - start_time) * 1000, 2),
+                "message": "No plate detected"
+            }))
+
+        best_det = max(detections, key=lambda x: x['confidence'])
+        rec_result = recognizer.recognize(best_det['crop'])
+
         result = {
-            "plate_number": "京A12345",
-            "confidence": 0.95,
+            "plate_number": rec_result['plate'],
+            "confidence": round(best_det['confidence'] * rec_result['confidence'], 4),
+            "detect_confidence": round(best_det['confidence'], 4),
+            "rec_confidence": round(rec_result['confidence'], 4),
             "entry_time": datetime.now().isoformat(),
-            "image_url": "/uploads/entry_sample.jpg",
-            "process_time": round((time.time() - start_time) * 1000, 2)
+            "image_path": filepath,
+            "total_time": round((time.time() - start_time) * 1000, 2),
+            "source": "model"
         }
 
         return jsonify(generate_response(data=result))
@@ -222,22 +389,65 @@ def parking_entry():
 def parking_exit():
     """
     出场识别接口
-    模拟出场场景，返回车牌号和停车费用
+    接收图片，识别车牌后返回车牌号
     """
-    data = request.get_json()
-    plate_number = data.get('plate_number', '')
+    if 'image' not in request.files:
+        return jsonify(generate_response(400, "No image file provided")), 400
+
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify(generate_response(400, "Empty filename")), 400
+
+    if not (file and allowed_file(file.filename)):
+        return jsonify(generate_response(400, "Invalid file type")), 400
+
+    plate_number = request.form.get('plate_number', None)
+
+    filename = f"{uuid.uuid4()}_{secure_filename(file.filename)}"
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
 
     start_time = time.time()
 
     try:
-        # TODO: 从CCPD数据集加载图片进行识别
-        # 模拟识别结果
+        image = cv2.imread(filepath)
+        if image is None:
+            return jsonify(generate_response(400, "Failed to load image")), 400
+
+        detections = detector.detect_and_crop(image)
+
+        if not detections:
+            # 如果没检测到车牌但有预期车牌号，直接用预期车牌号
+            if plate_number:
+                result = {
+                    "plate_number": plate_number,
+                    "confidence": 0,
+                    "exit_time": datetime.now().isoformat(),
+                    "image_path": filepath,
+                    "total_time": round((time.time() - start_time) * 1000, 2),
+                    "message": "No plate detected, using provided plate number"
+                }
+                return jsonify(generate_response(data=result))
+            return jsonify(generate_response(data={
+                "plate_number": None,
+                "confidence": 0,
+                "exit_time": datetime.now().isoformat(),
+                "image_path": filepath,
+                "total_time": round((time.time() - start_time) * 1000, 2),
+                "message": "No plate detected"
+            }))
+
+        best_det = max(detections, key=lambda x: x['confidence'])
+        rec_result = recognizer.recognize(best_det['crop'])
+
         result = {
-            "plate_number": plate_number or "京A12345",
-            "confidence": 0.94,
+            "plate_number": rec_result['plate'],
+            "confidence": round(best_det['confidence'] * rec_result['confidence'], 4),
+            "detect_confidence": round(best_det['confidence'], 4),
+            "rec_confidence": round(rec_result['confidence'], 4),
             "exit_time": datetime.now().isoformat(),
-            "image_url": "/uploads/exit_sample.jpg",
-            "process_time": round((time.time() - start_time) * 1000, 2)
+            "image_path": filepath,
+            "total_time": round((time.time() - start_time) * 1000, 2)
         }
 
         return jsonify(generate_response(data=result))
@@ -255,12 +465,38 @@ def benchmark():
     runs = request.args.get('runs', 100, type=int)
 
     try:
-        # TODO: 运行性能测试
+        # 运行性能测试
+        # 创建一个测试图像
+        test_image = np.zeros((640, 640, 3), dtype=np.uint8)
+
+        # 预热
+        for _ in range(10):
+            detector.detect(test_image)
+
+        # 测试检测性能
+        start = time.time()
+        for _ in range(runs):
+            detector.detect(test_image)
+        det_elapsed = time.time() - start
+
+        # 测试识别性能
+        test_plate = np.zeros((24, 94, 3), dtype=np.uint8)
+        start = time.time()
+        for _ in range(runs):
+            recognizer.recognize(test_plate)
+        rec_elapsed = time.time() - start
+
         result = {
             "runs": runs,
-            "avg_time_ms": 45.5,
-            "fps": 21.9,
-            "device": "cpu"
+            "detection": {
+                "avg_time_ms": round(det_elapsed / runs * 1000, 2),
+                "fps": round(runs / det_elapsed, 2)
+            },
+            "recognition": {
+                "avg_time_ms": round(rec_elapsed / runs * 1000, 2),
+                "fps": round(runs / rec_elapsed, 2)
+            },
+            "device": detector.device
         }
 
         return jsonify(generate_response(data=result))
@@ -275,23 +511,30 @@ def model_info():
     模型信息接口
     返回当前加载的模型信息
     """
+    det_loaded = detector is not None and detector.model is not None
+    rec_loaded = recognizer is not None and recognizer.model is not None
+
     info = {
         "detection_model": {
             "name": "YOLOv8n",
             "version": "8.0.0",
+            "loaded": det_loaded,
             "input_size": [640, 640],
             "classes": ["license_plate"],
-            "confidence_threshold": 0.5
+            "confidence_threshold": detector.conf_threshold if detector else 0.5,
+            "device": detector.device if detector else "cpu"
         },
         "recognition_model": {
             "name": "LPRNet",
             "version": "1.0.0",
+            "loaded": rec_loaded,
             "input_size": [94, 24],
-            "charset": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-            "support_chinese": True
+            "charset": recognizer.CHARS if recognizer else [],
+            "support_chinese": True,
+            "device": str(recognizer.device) if recognizer else "cpu"
         },
-        "device": "cpu",
-        "cuda_available": False
+        "device": detector.device if detector else "cpu",
+        "cuda_available": torch.cuda.is_available() if 'torch' in globals() else False
     }
 
     return jsonify(generate_response(data=info))
@@ -304,5 +547,9 @@ if __name__ == '__main__':
     print("智能停车场算法服务")
     print("API 文档: http://localhost:5000")
     print("=" * 50)
+
+    # 加载模型
+    load_models()
+    print("-" * 50)
 
     app.run(host='0.0.0.0', port=5000, debug=True)

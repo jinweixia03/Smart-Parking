@@ -37,6 +37,22 @@ export const COLORS = {
   carLightBack: 0xff4444
 }
 
+// 区域颜色（空闲状态，按 areaCode 区分）
+export const AREA_COLORS = {
+  A: 0x48bb78,  // 绿色 - 普通区
+  B: 0x4299e1,  // 蓝色 - 充电桩区
+  C: 0x8b5cf6,  // 紫色 - 东向区
+  D: 0xf59e0b,  // 金色 - VIP区
+}
+
+// 区域占用颜色（比空闲色深/暗）
+export const AREA_COLORS_OCCUPIED = {
+  A: 0xf56565,  // 统一红色表示占用
+  B: 0xf56565,
+  C: 0xf56565,
+  D: 0xf56565,
+}
+
 // 布局配置
 export const LAYOUT = {
   // 场地尺寸

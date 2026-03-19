@@ -50,7 +50,7 @@ const routes = [
         path: '/simulation',
         name: 'Simulation',
         component: () => import('@/views/admin/Simulation.vue'),
-        meta: { title: '仿真系统', icon: 'VideoCamera', adminOnly: true }
+        meta: { title: '车牌检测', icon: 'VideoCamera', adminOnly: true }
       },
       {
         path: '/settings',
