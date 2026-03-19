@@ -45,8 +45,8 @@ class PlateDetector:
             self.model = YOLO(model_path)
             self.model.to(self.device)
             print(f"检测器初始化完成: device={self.device}, model={model_path}")
-        except ImportError:
-            print("警告: ultralytics 未安装，使用模拟模式")
+        except Exception as e:
+            print(f"警告: ultralytics 加载失败({e})，使用模拟模式")
             self.model = None
 
     def detect(self, image: np.ndarray) -> List[Dict]:
