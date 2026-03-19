@@ -59,8 +59,7 @@ CREATE TABLE `sys_user`  (
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`) USING BTREE,
   UNIQUE INDEX `uk_username`(`username` ASC) USING BTREE,
-  UNIQUE INDEX `uk_phone`(`phone` ASC) USING BTREE,
-  CONSTRAINT `chk_user_status` CHECK (`status` in (0,1))
+  UNIQUE INDEX `uk_phone`(`phone` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -72,8 +71,7 @@ CREATE TABLE `parking_area`  (
   `area_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '区域名称',
   `area_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '普通' COMMENT '区域类型: 普通/VIP/充电桩/大型车/临时专用/访客专用',
   PRIMARY KEY (`area_id`) USING BTREE,
-  UNIQUE INDEX `uk_area_code`(`area_code` ASC) USING BTREE,
-  CONSTRAINT `chk_area_type` CHECK (`area_type` in (_utf8mb4'普通',_utf8mb4'VIP',_utf8mb4'充电桩',_utf8mb4'大型车',_utf8mb4'临时专用',_utf8mb4'访客专用'))
+  UNIQUE INDEX `uk_area_code`(`area_code` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '停车区域表' ROW_FORMAT = Dynamic;
 
 -- ==================== 第二批：创建依赖 parking_area 的表 ====================

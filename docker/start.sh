@@ -53,7 +53,8 @@ CREATE DATABASE IF NOT EXISTS smart_parking CHARACTER SET utf8mb4 COLLATE utf8mb
 FLUSH PRIVILEGES;
 SQLEOF
 
-    mysql -u root -p123456 smart_parking < /app/init.sql
+    mysql -u root -p123456 --default-character-set=utf8mb4 smart_parking < /app/init.sql
+    mysql -u root -p123456 --default-character-set=utf8mb4 smart_parking < /app/init_data.sql
     touch /var/lib/mysql/.parking_initialized
     echo "[MySQL] Data imported."
 

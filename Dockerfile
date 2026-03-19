@@ -61,6 +61,7 @@ COPY --from=frontend-builder /frontend/dist /app/frontend/dist
 
 # 数据库初始化 SQL
 COPY backend/src/main/resources/db/sp.sql /app/init.sql
+COPY backend/src/main/resources/db/init_data.sql /app/init_data.sql
 
 # ── Nginx 配置 ──────────────────────────────────────────────────
 COPY docker/nginx.conf /etc/nginx/sites-enabled/default
