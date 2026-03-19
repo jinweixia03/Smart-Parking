@@ -176,7 +176,6 @@ algorithm/data/
 algorithm/datasets/
 algorithm/images/
 algorithm/videos/
-algorithm/weights/
 algorithm/models/*.pth
 algorithm/models/*.pt
 algorithm/models/*.weights
@@ -184,12 +183,8 @@ data/
 datasets/
 
 # ============================================
-# Model Files (Large files)
+# Model Files (Large files, project weights excluded)
 # ============================================
-# Pre-trained models (if large)
-*.pth
-*.pt
-*.weights
 *.onnx
 *.pb
 *.h5

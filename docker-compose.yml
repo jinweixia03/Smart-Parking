@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+
+  # ── MySQL 数据库 ──────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: parking-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: smart_parking
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./backend/src/main/resources/db/sp.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ── 算法服务 (Python/Flask) ───────────────────
+  algorithm:
+    build:
+      context: ./algorithm
+      dockerfile: Dockerfile
+    container_name: parking-algorithm
+    restart: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - algorithm-uploads:/app/data/uploads
+    environment:
+      - FLASK_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ── 后端服务 (Spring Boot) ────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: parking-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - backend-uploads:/app/uploads
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/smart_parking?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - ALGORITHM_SERVICE_URL=http://algorithm:5000
+    depends_on:
+      mysql:
+        condition: service_healthy
+      algorithm:
+        condition: service_healthy
+
+  # ── 前端服务 (Nginx) ──────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: parking-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql-data:
+  backend-uploads:
+  algorithm-uploads:

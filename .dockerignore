@@ -1,0 +1,37 @@
+# Git
+.git
+.gitignore
+
+# 文档
+docs/
+check.md
+*.md
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# 前端
+frontend/node_modules/
+frontend/dist/
+
+# 后端
+backend/target/
+backend/logs/
+
+# 算法
+algorithm/data/
+algorithm/datasets/
+algorithm/__pycache__/
+algorithm/*.pyc
+
+# 模型权重保留（best.pt 18M, best.pth 2.4M，直接打包进镜像）
+
+# 上传文件
+uploads/
+backend/uploads/
+
+# 环境
+.env
+.env.local
