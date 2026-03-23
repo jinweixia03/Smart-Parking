@@ -75,15 +75,6 @@ public class AlgorithmController {
     }
 
     /**
-     * 健康检查
-     */
-    @GetMapping("/health")
-    public Result<Boolean> healthCheck() {
-        boolean healthy = algorithmService.healthCheck();
-        return Result.success(healthy);
-    }
-
-    /**
      * 解析算法服务返回结果
      */
     @SuppressWarnings("unchecked")

@@ -166,7 +166,7 @@
 
     <!-- 页脚 -->
     <div class="forgot-footer">
-      <p>© 2024 智能停车场管理系统 | 版权所有</p>
+      <p>© 2024 智能停车场综合管理系统 (IPMS) | 版权所有</p>
     </div>
   </div>
 </template>

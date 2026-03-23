@@ -20,7 +20,7 @@
           </div>
           <div class="brand-text">
             <p class="greeting">Hi! 你好!</p>
-            <p class="welcome">欢迎进入智能停车场系统</p>
+            <p class="welcome">欢迎进入IPMS</p>
             <p class="description">基于深度学习的车牌识别与停车管理解决方案</p>
           </div>
           <div class="features">
@@ -132,7 +132,7 @@
 
     <!-- 页脚 -->
     <div class="login-footer">
-      <p>© 2024 智能停车场管理系统 | 版权所有</p>
+      <p>© 2024 智能停车场综合管理系统 (IPMS) | 版权所有</p>
     </div>
   </div>
 </template>

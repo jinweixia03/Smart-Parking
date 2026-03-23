@@ -1,0 +1,120 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36" version="29.6.4">
+  <diagram name="图4 系统架构图" id="L_K0EPOG-pc9wMcyU6u2">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-41" connectable="0" parent="1" style="group" value="" vertex="1">
+          <mxGeometry height="670" width="520" x="114" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-2" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="swimlane;startSize=32;fontSize=13;fontStyle=1;strokeWidth=2;container=0;" value="表现层 (Presentation Layer)" vertex="1">
+          <mxGeometry height="140" width="520" as="geometry">
+            <mxRectangle height="32" width="200" x="290" y="410" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-11" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="swimlane;startSize=32;fontSize=13;fontStyle=1;strokeWidth=2;container=0;" value="业务逻辑层 (Business Logic Layer)" vertex="1">
+          <mxGeometry height="150" width="520" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-20" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="swimlane;startSize=32;fontSize=13;fontStyle=1;strokeWidth=2;container=0;" value="服务层 (Service Layer)" vertex="1">
+          <mxGeometry height="150" width="520" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-29" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="swimlane;startSize=32;fontSize=13;fontStyle=1;strokeWidth=2;container=0;" value="算法层 (Algorithm Layer — Python 独立服务)" vertex="1">
+          <mxGeometry height="100" width="520" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-35" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="swimlane;startSize=32;fontSize=13;fontStyle=1;strokeWidth=2;container=0;" value="基础设施层 (Infrastructure Layer)" vertex="1">
+          <mxGeometry height="90" width="520" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-3" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="Vue 3 + TypeScript&#xa;前端框架" vertex="1">
+          <mxGeometry height="40" width="115" x="15" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-4" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="Element Plus&#xa;UI组件库" vertex="1">
+          <mxGeometry height="40" width="110" x="140" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-5" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="ECharts&#xa;数据可视化" vertex="1">
+          <mxGeometry height="40" width="110" x="260" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-6" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="Three.js&#xa;2.5D停车场视图" vertex="1">
+          <mxGeometry height="40" width="115" x="386" y="42" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-7" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="Nginx&#xa;静态资源服务" vertex="1">
+          <mxGeometry height="40" width="115" x="386" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-8" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="Vite&#xa;构建工具" vertex="1">
+          <mxGeometry height="40" width="115" x="15" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-9" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="Pinia&#xa;状态管理" vertex="1">
+          <mxGeometry height="40" width="110" x="140" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-10" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="Axios&#xa;HTTP请求" vertex="1">
+          <mxGeometry height="40" width="110" x="260" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-12" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="AuthController&#xa;认证控制器" vertex="1">
+          <mxGeometry height="40" width="110" x="15" y="192" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-13" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="ParkingController&#xa;停车场控制器" vertex="1">
+          <mxGeometry height="40" width="115" x="135" y="192" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-14" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="FeeRuleController&#xa;收费规则控制器" vertex="1">
+          <mxGeometry height="40" width="115" x="260" y="192" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-15" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="UserController&#xa;用户控制器" vertex="1">
+          <mxGeometry height="40" width="110" x="385" y="192" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-16" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="LogController&#xa;日志控制器" vertex="1">
+          <mxGeometry height="46.5" width="100" x="267.5" y="243.5" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-17" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="JWT认证过滤器&#xa;Spring Security" vertex="1">
+          <mxGeometry height="44" width="130" x="15" y="246" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-18" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="AOP操作日志记录" vertex="1">
+          <mxGeometry height="44" width="102" x="158" y="246" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-19" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="Spring Boot 3.2&#xa;+ MyBatis Plus" vertex="1">
+          <mxGeometry height="46.5" width="115" x="375" y="243.5" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-21" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="ParkingRecordService&#xa;停车记录服务" vertex="1">
+          <mxGeometry height="40" width="120" x="15" y="352" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-22" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="ParkingSpaceService&#xa;停车位服务" vertex="1">
+          <mxGeometry height="40" width="120" x="145" y="352" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-23" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="FeeCalculateService&#xa;费用计算服务" vertex="1">
+          <mxGeometry height="40" width="120" x="275" y="352" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-24" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="SysUserService&#xa;用户服务" vertex="1">
+          <mxGeometry height="40" width="110" x="405" y="352" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-25" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="FileService&#xa;图片文件服务" vertex="1">
+          <mxGeometry height="40" width="110" x="405" y="404" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-26" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="MySQL 8.0&#xa;数据持久层" vertex="1">
+          <mxGeometry height="38" width="120" x="15" y="406" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-27" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="MyBatis Plus&#xa;ORM映射" vertex="1">
+          <mxGeometry height="38" width="120" x="148" y="406" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-28" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="BCrypt&#xa;密码加密" vertex="1">
+          <mxGeometry height="38" width="115" x="275" y="406" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-30" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="Flask REST API&#xa;服务接口" vertex="1">
+          <mxGeometry height="40" width="110" x="6" y="512" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-31" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="YOLOv8&#xa;车牌检测模型" vertex="1">
+          <mxGeometry height="40" width="110" x="216" y="512" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-32" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="LPRNet&#xa;车牌识别模型" vertex="1">
+          <mxGeometry height="40" width="110" x="396" y="512" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-36" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="Docker&#xa;容器化部署" vertex="1">
+          <mxGeometry height="40" width="110" x="15" y="618" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-38" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="Supervisor&#xa;进程管理" vertex="1">
+          <mxGeometry height="40" width="110" x="216" y="618" as="geometry" />
+        </mxCell>
+        <mxCell id="mbps8bqqNZcSQQ_9VDjJ-40" parent="mbps8bqqNZcSQQ_9VDjJ-41" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;container=0;" value="MySQL 8.0&#xa;数据库" vertex="1">
+          <mxGeometry height="40" width="80" x="416" y="618" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

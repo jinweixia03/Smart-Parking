@@ -81,6 +81,7 @@ CREATE TABLE `parking_area`  (
 -- ----------------------------
 CREATE TABLE `parking_space`  (
   `space_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '车位ID',
+  `area_id` bigint UNSIGNED NOT NULL COMMENT '区域ID',
   `floor` tinyint UNSIGNED NOT NULL DEFAULT 1 COMMENT '楼层: 1-一层 2-二层',
   `space_code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '车位编号',
   `status` tinyint NOT NULL DEFAULT 0 COMMENT '状态: 0-空闲 1-占用',
@@ -88,6 +89,8 @@ CREATE TABLE `parking_space`  (
   PRIMARY KEY (`space_id`) USING BTREE,
   UNIQUE INDEX `uk_space_code`(`space_code` ASC) USING BTREE,
   INDEX `idx_space_status`(`status` ASC) USING BTREE,
+  INDEX `idx_space_area`(`area_id` ASC) USING BTREE,
+  CONSTRAINT `fk_space_area` FOREIGN KEY (`area_id`) REFERENCES `parking_area` (`area_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `chk_space_status` CHECK (`status` in (0,1))
 ) ENGINE = InnoDB AUTO_INCREMENT = 509 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '停车位表' ROW_FORMAT = Dynamic;
 
@@ -188,36 +191,3 @@ BEGIN
 END;;
 
 DELIMITER ;
-
--- ==================== 创建触发器（已移除，统计从space表实时计算） ====================
-
--- ----------------------------
--- Table structure for operation_log
--- ----------------------------
-CREATE TABLE IF NOT EXISTS `operation_log` (
-  `log_id` bigint NOT NULL AUTO_INCREMENT COMMENT '日志ID',
-  `operator_type` int NULL DEFAULT NULL COMMENT '操作者类型 1-管理员 2-普通用户',
-  `operator_id` bigint NULL DEFAULT NULL COMMENT '操作者ID',
-  `operator_name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '操作者姓名',
-  `module` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '模块名称',
-  `operation` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '操作类型',
-  `request_method` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '请求方法',
-  `request_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '请求URL',
-  `status` int NULL DEFAULT NULL COMMENT '操作状态 1-成功 0-失败',
-  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
-  PRIMARY KEY (`log_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '操作日志表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for sys_notice
--- ----------------------------
-CREATE TABLE IF NOT EXISTS `sys_notice` (
-  `notice_id` bigint NOT NULL AUTO_INCREMENT COMMENT '公告ID',
-  `title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '标题',
-  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT '内容',
-  `notice_type` int NULL DEFAULT 1 COMMENT '公告类型 1-通知 2-公告 3-提醒',
-  `is_top` int NULL DEFAULT 0 COMMENT '是否置顶 0-否 1-是',
-  `status` int NULL DEFAULT 1 COMMENT '状态 0-禁用 1-启用',
-  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
-  PRIMARY KEY (`notice_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '系统公告表' ROW_FORMAT = Dynamic;

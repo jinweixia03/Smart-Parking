@@ -10,17 +10,6 @@
 
     <!-- 左上角综合控制面板 -->
     <div class="control-panel">
-      <!-- 统计数据 -->
-      <div class="section stats-section">
-        <div class="stat-row" v-for="(stat, index) in stats" :key="index">
-          <div class="stat-dot" :class="stat.class"></div>
-          <span class="stat-label">{{ stat.label }}</span>
-          <span class="stat-value">{{ stat.value }}{{ stat.suffix }}</span>
-        </div>
-      </div>
-
-      <div class="divider" />
-
       <!-- 楼层切换 -->
       <div class="section">
         <div class="section-title">楼层</div>
@@ -51,7 +40,77 @@
       </div>
     </div>
 
-    <!-- 选中车位详情（右上角保留） -->
+    <!-- 右上角统计卡片 -->
+    <div class="stats-card">
+      <div class="stats-header">
+        <el-icon><DataLine /></el-icon>
+        <span>实时统计</span>
+      </div>
+      <div class="stats-body">
+        <div class="stat-item" v-for="(stat, index) in stats" :key="index">
+          <div class="stat-info">
+            <div class="stat-dot" :class="stat.class"></div>
+            <span class="stat-label">{{ stat.label }}</span>
+          </div>
+          <span class="stat-value">{{ stat.value }}{{ stat.suffix }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 车牌搜索 -->
+    <div class="search-panel">
+      <div class="search-header">
+        <el-icon><Search /></el-icon>
+        <span>找车</span>
+      </div>
+      <div class="search-body">
+        <el-input
+          v-model="searchPlate"
+          placeholder="输入车牌号"
+          size="small"
+          clearable
+          @keyup.enter="handleSearch"
+        >
+          <template #append>
+            <el-button @click="handleSearch">
+              <el-icon><Search /></el-icon>
+            </el-button>
+          </template>
+        </el-input>
+        <div v-if="searchResult" class="search-result" :class="{ found: searchResult.found }">
+          <template v-if="searchResult.found">
+            <div class="result-item">
+              <span class="result-label">车位:</span>
+              <span class="result-value">{{ searchResult.space.spaceCode }}</span>
+            </div>
+            <div class="result-item">
+              <span class="result-label">楼层:</span>
+              <span class="result-value">{{ searchResult.space.floor }}层</span>
+            </div>
+            <div class="result-item">
+              <span class="result-label">区域:</span>
+              <span class="result-value">{{ searchResult.space.areaCode }}区</span>
+            </div>
+            <div class="result-item">
+              <span class="result-label">入场:</span>
+              <span class="result-value">{{ formatTime(searchResult.space.entryTime) }}</span>
+            </div>
+            <el-button type="primary" size="small" @click="locateSpace(searchResult.space)">
+              <el-icon><Location /></el-icon>
+              定位车位
+            </el-button>
+          </template>
+          <template v-else>
+            <div class="no-result">
+              <el-icon><Warning /></el-icon>
+              <span>未找到该车辆</span>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- 选中车位详情 -->
     <div v-if="selectedSpace" class="space-detail-panel">
       <div class="panel-header">
         <h3>车位详情</h3>
@@ -86,16 +145,19 @@
 
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
-import { Check, Close, Star, PieChart, OfficeBuilding, RefreshRight, Refresh, Mouse } from '@element-plus/icons-vue'
+import { Check, Close, Star, PieChart, OfficeBuilding, RefreshRight, Refresh, Mouse, Search, Location, Warning, DataLine } from '@element-plus/icons-vue'
 import { useParkingLot } from '@/composables/useParkingLot.js'
 import { useThreeScene } from '@/composables/useThreeScene.js'
 import { useParkingBuilder } from '@/composables/useParkingBuilder.js'
 import { FLOORS, SPACE_STATUS } from '@/constants/parking.js'
 import { getAreas } from '@/api/parking.js'
+import { ElMessage } from 'element-plus'
 
 // ==================== 状态管理 ====================
 const canvasContainer = ref(null)
 const autoRotate = ref(false)
+const searchPlate = ref('')
+const searchResult = ref(null)
 
 const {
   spaces,
@@ -123,7 +185,8 @@ const {
   setSelectedMesh,
   clearSelectedMesh,
   resetCamera,
-  toggleAutoRotate: toggleRotate
+  toggleAutoRotate: toggleRotate,
+  focusOnSpace
 } = useThreeScene(canvasContainer, handleSpaceClick)
 
 const { build } = useParkingBuilder(scene, materials, spaceMeshes, carMeshes)
@@ -198,6 +261,60 @@ const legendItems = computed(() => {
   )
   return items
 })
+
+// ==================== 车牌搜索 ====================
+function handleSearch() {
+  if (!searchPlate.value.trim()) {
+    searchResult.value = null
+    return
+  }
+
+  const plate = searchPlate.value.trim().toUpperCase()
+  const foundSpace = spaces.value.find(s =>
+    s.currentPlate && s.currentPlate.toUpperCase() === plate
+  )
+
+  if (foundSpace) {
+    searchResult.value = {
+      found: true,
+      space: foundSpace
+    }
+  } else {
+    searchResult.value = {
+      found: false
+    }
+  }
+}
+
+function locateSpace(space) {
+  // 切换到对应楼层
+  if (space.floor !== currentFloor.value) {
+    switchFloor(space.floor)
+  }
+
+  // 等待场景重建完成后再定位
+  nextTick(() => {
+    // 延迟执行，确保3D场景已重建
+    setTimeout(() => {
+      // 获取车位位置并移动视角
+      const meshData = spaceMeshes.get(space.spaceCode)
+      if (meshData && meshData.group) {
+        const position = meshData.group.position
+        console.log('Locating to space:', space.spaceCode, 'position:', position.x, position.z)
+        focusOnSpace(position.x, position.z)
+
+        // 选中并高亮车位
+        handleSpaceClick(space)
+
+        // 显示提示
+        ElMessage.success(`已定位到车位 ${space.spaceCode}`)
+      } else {
+        console.warn('Space mesh not found:', space.spaceCode)
+        ElMessage.warning('车位尚未加载，请稍后再试')
+      }
+    }, 500) // 等待500ms确保场景重建完成
+  })
+}
 
 // ==================== 方法 ====================
 function handleSpaceClick(space) {
@@ -346,23 +463,6 @@ onUnmounted(() => {
     background: #e2e8f0;
   }
 
-  // 统计行
-  .stats-section { gap: 8px; }
-  .stat-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    .stat-dot {
-      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
-      &.free     { background: #48bb78; box-shadow: 0 0 6px rgba(72,187,120,0.5); }
-      &.occupied { background: #f56565; box-shadow: 0 0 6px rgba(245,101,101,0.5); }
-      &.vip      { background: #f59e0b; box-shadow: 0 0 6px rgba(245,158,11,0.5); }
-      &.rate     { background: #4299e1; box-shadow: 0 0 6px rgba(66,153,225,0.5); }
-    }
-    .stat-label { font-size: 13px; color: #718096; flex: 1; }
-    .stat-value { font-size: 18px; font-weight: 700; color: #2d3748; }
-  }
-
   // 楼层按钮
   .floor-buttons { display: flex; gap: 8px; }
   .floor-btn {
@@ -396,12 +496,175 @@ onUnmounted(() => {
   }
 }
 
-// 详情面板（右上角）
-.space-detail-panel {
+// 右上角统计卡片
+.stats-card {
   position: absolute;
   top: 16px;
   right: 16px;
-  width: 240px;
+  width: 200px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+
+  .stats-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    .el-icon {
+      font-size: 16px;
+      color: #4299e1;
+    }
+    span {
+      font-size: 14px;
+      font-weight: 600;
+      color: #2d3748;
+    }
+  }
+
+  .stats-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .stat-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stat-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .stat-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    &.free     { background: #48bb78; box-shadow: 0 0 6px rgba(72,187,120,0.5); }
+    &.occupied { background: #f56565; box-shadow: 0 0 6px rgba(245,101,101,0.5); }
+    &.vip      { background: #f59e0b; box-shadow: 0 0 6px rgba(245,158,11,0.5); }
+    &.rate     { background: #4299e1; box-shadow: 0 0 6px rgba(66,153,225,0.5); }
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: #718096;
+  }
+
+  .stat-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2d3748;
+  }
+}
+
+// 车牌搜索面板
+.search-panel {
+  position: absolute;
+  top: 16px;
+  right: 232px;
+  width: 220px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+
+  .search-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    .el-icon {
+      font-size: 16px;
+      color: #4299e1;
+    }
+    span {
+      font-size: 14px;
+      font-weight: 600;
+      color: #2d3748;
+    }
+  }
+
+  .search-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .search-result {
+    padding: 12px;
+    background: rgba(245, 101, 101, 0.08);
+    border-radius: 10px;
+    border: 1px solid rgba(245, 101, 101, 0.2);
+
+    &.found {
+      background: rgba(72, 187, 120, 0.08);
+      border-color: rgba(72, 187, 120, 0.2);
+    }
+
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+
+      &:last-of-type {
+        margin-bottom: 10px;
+      }
+    }
+
+    .result-label {
+      font-size: 12px;
+      color: #a0aec0;
+    }
+
+    .result-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: #2d3748;
+    }
+
+    .no-result {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 0;
+      color: #f56565;
+      font-size: 13px;
+
+      .el-icon {
+        font-size: 16px;
+      }
+    }
+
+    .el-button {
+      width: 100%;
+      margin-top: 4px;
+    }
+  }
+}
+
+// 详情面板
+.space-detail-panel {
+  position: absolute;
+  top: 280px;
+  right: 16px;
+  width: 200px;
   padding: 16px;
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(20px);
@@ -493,6 +756,8 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .control-panel { width: 150px; padding: 10px; }
-  .space-detail-panel { width: 160px; padding: 10px; }
+  .stats-card { width: 150px; padding: 10px; top: auto; bottom: 50px; right: 8px; }
+  .search-panel { width: 160px; padding: 10px; right: auto; left: 16px; top: 200px; }
+  .space-detail-panel { width: 160px; padding: 10px; top: auto; bottom: 50px; right: 8px; }
 }
 </style>

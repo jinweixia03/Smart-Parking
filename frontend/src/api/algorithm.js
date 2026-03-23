@@ -59,10 +59,3 @@ export const exitRecognize = (image, plateNumber = null) => {
 export const getModelInfo = () => {
   return request.get('/algorithm/model-info')
 }
-
-/**
- * 算法服务健康检查
- */
-export const checkHealth = () => {
-  return request.get('/algorithm/health')
-}

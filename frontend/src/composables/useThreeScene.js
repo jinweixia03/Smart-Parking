@@ -249,6 +249,67 @@ export function useThreeScene(containerRef, onSpaceClick) {
     }
   }
 
+  // 聚焦到指定车位位置
+  function focusOnSpace(x, z, duration = 1000) {
+    if (!camera || !controls) return
+
+    console.log('focusOnSpace called:', x, z)
+
+    // 保存原始限制
+    const originalMinDistance = controls.minDistance
+    const originalMaxDistance = controls.maxDistance
+
+    // 临时放宽距离限制，允许相机移动到车位附近
+    controls.minDistance = 50
+    controls.maxDistance = 500
+
+    // 计算目标相机位置（从斜上方俯视车位）
+    // 使用与默认视角相同的相对偏移
+    const offsetX = 60
+    const offsetY = 80
+    const offsetZ = 60
+
+    const targetPosition = new THREE.Vector3(x + offsetX, offsetY, z + offsetZ)
+    const targetLookAt = new THREE.Vector3(x, 0, z)
+
+    console.log('Target camera position:', targetPosition.x, targetPosition.y, targetPosition.z)
+    console.log('Target lookAt:', targetLookAt.x, targetLookAt.y, targetLookAt.z)
+
+    // 保存起始位置
+    const startPosition = camera.position.clone()
+    const startTarget = controls.target.clone()
+
+    // 动画开始时间
+    const startTime = Date.now()
+
+    function animateCamera() {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(elapsed / duration, 1)
+
+      // 使用缓动函数使动画更平滑
+      const easeProgress = 1 - Math.pow(1 - progress, 3) // easeOutCubic
+
+      // 插值计算当前位置
+      camera.position.lerpVectors(startPosition, targetPosition, easeProgress)
+      controls.target.lerpVectors(startTarget, targetLookAt, easeProgress)
+
+      // 每帧都更新控制器
+      controls.update()
+
+      if (progress < 1) {
+        requestAnimationFrame(animateCamera)
+      } else {
+        // 动画完成后恢复原始限制
+        controls.minDistance = originalMinDistance
+        controls.maxDistance = originalMaxDistance
+        controls.update()
+        console.log('Camera animation completed')
+      }
+    }
+
+    animateCamera()
+  }
+
   function destroy() {
     if (animationId) cancelAnimationFrame(animationId)
 
@@ -282,6 +343,7 @@ export function useThreeScene(containerRef, onSpaceClick) {
     setSelectedMesh,
     clearSelectedMesh,
     resetCamera,
-    toggleAutoRotate
+    toggleAutoRotate,
+    focusOnSpace
   }
 }
