@@ -88,8 +88,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 更新登录信息（暂时禁用，数据库缺少字段）
         // userMapper.updateLoginInfo(user.getUserId(), ip);
 
-        // 生成Token
-        String token = jwtUtil.generateToken(user.getUserId(), user.getUsername(), "USER");
+        // 生成Token - 根据用户类型设置角色
+        String role = user.getUserType() != null && user.getUserType() == 1 ? "ADMIN" : "USER";
+        String token = jwtUtil.generateToken(user.getUserId(), user.getUsername(), role);
 
         Map<String, Object> result = new HashMap<>();
         result.put("token", token);

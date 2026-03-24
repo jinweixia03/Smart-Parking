@@ -39,13 +39,13 @@ public class SecurityConfig {
             // URL authorization
             .authorizeHttpRequests(auth -> auth
                 // 公开接口 - 认证相关
-                .requestMatchers("/api/auth/**", "/api/health", "/api/model-info").permitAll()
+                .requestMatchers("/auth/**", "/health", "/model-info").permitAll()
                 // 管理员接口 - 车辆管理
-                .requestMatchers("/api/parking/entry", "/api/parking/exit").hasRole("ADMIN")
+                .requestMatchers("/parking/entry", "/parking/exit").hasRole("ADMIN")
                 // 管理员接口 - 收费规则
-                .requestMatchers("/api/fee-rule/**", "/api/fee-rules/**").hasRole("ADMIN")
+                .requestMatchers("/fee-rule/**", "/fee-rules/**").hasRole("ADMIN")
                 // 管理员接口 - 数据统计
-                .requestMatchers("/api/parking/realtime", "/api/parking/chart", "/api/parking/stats/**").hasRole("ADMIN")
+                .requestMatchers("/parking/realtime", "/parking/chart", "/parking/stats/**").hasRole("ADMIN")
                 // 其他接口需要认证
                 .anyRequest().authenticated()
             )
