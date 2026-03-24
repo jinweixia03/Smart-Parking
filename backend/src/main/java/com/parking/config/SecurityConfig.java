@@ -36,10 +36,21 @@ public class SecurityConfig {
             // Stateless session
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            // URL authorization - 开发环境放行所有请求
+            // URL authorization
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll()
-            );
+                // 公开接口 - 认证相关
+                .requestMatchers("/api/auth/**", "/api/health", "/api/model-info").permitAll()
+                // 管理员接口 - 车辆管理
+                .requestMatchers("/api/parking/entry", "/api/parking/exit").hasRole("ADMIN")
+                // 管理员接口 - 收费规则
+                .requestMatchers("/api/fee-rule/**", "/api/fee-rules/**").hasRole("ADMIN")
+                // 管理员接口 - 数据统计
+                .requestMatchers("/api/parking/realtime", "/api/parking/chart", "/api/parking/stats/**").hasRole("ADMIN")
+                // 其他接口需要认证
+                .anyRequest().authenticated()
+            )
+            // 添加JWT过滤器
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

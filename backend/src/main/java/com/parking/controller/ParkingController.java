@@ -5,7 +5,6 @@ import com.parking.entity.ParkingArea;
 import com.parking.entity.ParkingRecord;
 import com.parking.entity.ParkingSpace;
 import com.parking.entity.SysUser;
-import com.parking.service.FileService;
 import com.parking.service.ParkingAreaService;
 import com.parking.service.ParkingRecordService;
 import com.parking.service.ParkingSpaceService;
@@ -16,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -48,7 +46,6 @@ public class ParkingController {
     private final ParkingAreaService areaService;
     private final ParkingSpaceService spaceService;
     private final SysUserService userService;
-    private final FileService fileService;
 
     // 模拟订单存储（实际项目应存数据库）key=orderId, value={recordId, method, createTime, paid}
     private static final ConcurrentHashMap<String, Map<String, Object>> orderStore = new ConcurrentHashMap<>();
@@ -107,14 +104,12 @@ public class ParkingController {
      * 车辆入场（仅管理员）
      *
      * @param plateNumber 车牌号 (必填)
-     * @param image       入场图片（可选）
      * @return 创建的停车记录
      * @apiNote 如果车辆已在停车场内，返回错误
      */
     @PostMapping("/entry")
     public Result<ParkingRecord> entry(
             @RequestParam String plateNumber,
-            @RequestParam(required = false) MultipartFile image,
             HttpServletRequest request) {
 
         // 检查是否为管理员
@@ -122,7 +117,7 @@ public class ParkingController {
             return Result.error(403, "只有管理员可以操作车辆入场");
         }
 
-        log.info("车辆入场请求: plateNumber={}, hasImage={}", plateNumber, image != null);
+        log.info("车辆入场请求: plateNumber={}", plateNumber);
 
         if (!StringUtils.hasText(plateNumber)) {
             return Result.error("车牌号不能为空");
@@ -130,16 +125,6 @@ public class ParkingController {
 
         try {
             ParkingRecord record = recordService.entry(plateNumber);
-
-            // 上传入场图片（仅保存文件，数据库无对应字段）
-            if (image != null && !image.isEmpty()) {
-                try {
-                    fileService.uploadImage(image, "entry");
-                } catch (Exception e) {
-                    log.warn("入场图片上传失败: {}", e.getMessage());
-                }
-            }
-
             return Result.success("入场成功", record);
         } catch (IllegalArgumentException e) {
             log.warn("入场参数错误: {}", e.getMessage());
@@ -151,47 +136,15 @@ public class ParkingController {
     }
 
     /**
-     * 上传入场图片到指定记录
-     */
-    @PostMapping("/{recordId}/entry-image")
-    public Result<Void> uploadEntryImage(
-            @PathVariable Long recordId,
-            @RequestParam("image") MultipartFile image,
-            HttpServletRequest request) {
-
-        if (!isAdmin(request)) {
-            return Result.error(403, "只有管理员可以操作");
-        }
-
-        ParkingRecord record = recordService.getById(recordId);
-        if (record == null) {
-            return Result.error("记录不存在");
-        }
-
-        try {
-            String imageUrl = fileService.uploadImage(image, "entry");
-            record.setEntryImage(imageUrl);
-            recordService.updateById(record);
-            log.info("上传入场图片: recordId={}, url={}", recordId, imageUrl);
-            return Result.success();
-        } catch (Exception e) {
-            log.error("上传入场图片失败: {}", e.getMessage());
-            return Result.error("上传失败: " + e.getMessage());
-        }
-    }
-
-    /**
      * 车辆出场（仅管理员）
      *
      * @param plateNumber 车牌号 (必填)
-     * @param image       出场图片（可选）
      * @return 出场结果：记录、停车时长、费用、是否需要支付
      * @apiNote 如果未找到入场记录，返回错误
      */
     @PostMapping("/exit")
     public Result<Map<String, Object>> exit(
             @RequestParam String plateNumber,
-            @RequestParam(required = false) MultipartFile image,
             HttpServletRequest request) {
 
         // 检查是否为管理员
@@ -199,7 +152,7 @@ public class ParkingController {
             return Result.error(403, "只有管理员可以操作车辆出场");
         }
 
-        log.info("车辆出场请求: plateNumber={}, hasImage={}", plateNumber, image != null);
+        log.info("车辆出场请求: plateNumber={}", plateNumber);
 
         if (!StringUtils.hasText(plateNumber)) {
             return Result.error("车牌号不能为空");
@@ -207,16 +160,6 @@ public class ParkingController {
 
         try {
             Map<String, Object> result = recordService.exit(plateNumber);
-
-            // 上传出场图片（仅保存文件，数据库无对应字段）
-            if (image != null && !image.isEmpty()) {
-                try {
-                    fileService.uploadImage(image, "exit");
-                } catch (Exception e) {
-                    log.warn("出场图片上传失败: {}", e.getMessage());
-                }
-            }
-
             return Result.success("出场成功", result);
         } catch (IllegalArgumentException e) {
             log.warn("出场参数错误: {}", e.getMessage());
@@ -224,36 +167,6 @@ public class ParkingController {
         } catch (RuntimeException e) {
             log.warn("出场失败: {}", e.getMessage());
             return Result.error(e.getMessage());
-        }
-    }
-
-    /**
-     * 上传出场图片到指定记录
-     */
-    @PostMapping("/{recordId}/exit-image")
-    public Result<Void> uploadExitImage(
-            @PathVariable Long recordId,
-            @RequestParam("image") MultipartFile image,
-            HttpServletRequest request) {
-
-        if (!isAdmin(request)) {
-            return Result.error(403, "只有管理员可以操作");
-        }
-
-        ParkingRecord record = recordService.getById(recordId);
-        if (record == null) {
-            return Result.error("记录不存在");
-        }
-
-        try {
-            String imageUrl = fileService.uploadImage(image, "exit");
-            record.setExitImage(imageUrl);
-            recordService.updateById(record);
-            log.info("上传出场图片: recordId={}, url={}", recordId, imageUrl);
-            return Result.success();
-        } catch (Exception e) {
-            log.error("上传出场图片失败: {}", e.getMessage());
-            return Result.error("上传失败: " + e.getMessage());
         }
     }
 

@@ -36,7 +36,11 @@
       </div>
 
       <!-- 右侧登录表单 -->
-      <div class="form-section">
+      <div class="form-section" data-testid="login-form-section">
+        <!-- 测试标记: 登录区域 -->
+        <div class="test-marker" v-if="showTestMarkers">
+          <span class="marker-label">TS-UM-008: 登录功能测试区域</span>
+        </div>
         <div class="form-wrapper" :class="{ 'slide-up': showForm }">
           <h2 class="form-title">登录系统</h2>
           <p class="form-subtitle">请输入您的账号信息</p>
@@ -155,6 +159,7 @@ const showContainer = ref(false)
 const showForm = ref(false)
 const usernameFocused = ref(false)
 const passwordFocused = ref(false)
+const showTestMarkers = ref(false)
 
 // 特性列表
 const features = [
@@ -172,6 +177,10 @@ const loginForm = reactive({
 
 // 从本地存储读取记住的密码
 onMounted(() => {
+  // 检查是否显示测试标记（通过URL参数 ?test=1 开启）
+  const urlParams = new URLSearchParams(window.location.search)
+  showTestMarkers.value = urlParams.get('test') === '1'
+
   const savedUsername = localStorage.getItem('parking_username')
   const savedPassword = localStorage.getItem('parking_password')
   if (savedUsername && savedPassword) {
@@ -455,6 +464,45 @@ const otherLogin = (type) => {
   align-items: center;
   justify-content: center;
   background: #fff;
+  position: relative;
+}
+
+// 测试标记样式
+.test-marker {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(238, 90, 90, 0.3);
+  animation: markerPulse 2s infinite;
+
+  .marker-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    &::before {
+      content: '📷';
+      font-size: 14px;
+    }
+  }
+}
+
+@keyframes markerPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(238, 90, 90, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(238, 90, 90, 0.5);
+  }
 }
 
 .form-wrapper {

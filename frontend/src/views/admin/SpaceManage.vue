@@ -1,5 +1,10 @@
 <template>
-  <div class="space-manage-2-5d">
+  <div class="space-manage-2-5d" data-testid="space-manage-page">
+    <!-- 测试标记 -->
+    <div class="test-marker" v-if="showTestMarkers">
+      <span class="marker-label">TS-PS-001: 2.5D停车场测试区域</span>
+    </div>
+
     <!-- 3D 画布容器 -->
     <div ref="canvasContainer" class="canvas-container">
       <div v-if="isLoading" class="loading-overlay">
@@ -158,6 +163,7 @@ const canvasContainer = ref(null)
 const autoRotate = ref(false)
 const searchPlate = ref('')
 const searchResult = ref(null)
+const showTestMarkers = ref(false)
 
 const {
   spaces,
@@ -372,6 +378,10 @@ async function refreshSpaces() {
 }
 
 onMounted(() => {
+  // 检查是否显示测试标记
+  const urlParams = new URLSearchParams(window.location.search)
+  showTestMarkers.value = urlParams.get('test') === '1'
+
   initCheckInterval = setInterval(checkAndBuild, 100)
   setTimeout(() => clearInterval(initCheckInterval), 5000)
   // 每30秒自动刷新
@@ -391,6 +401,45 @@ onUnmounted(() => {
   height: 100%;
   background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 50%, #e2e8f0 100%);
   overflow: hidden;
+
+  // 测试标记样式
+  .test-marker {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+    animation: markerPulse 2s infinite;
+
+    .marker-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      &::before {
+        content: '📷';
+        font-size: 14px;
+      }
+    }
+  }
+
+  @keyframes markerPulse {
+    0%, 100% {
+      transform: translateX(-50%) scale(1);
+      box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+    }
+    50% {
+      transform: translateX(-50%) scale(1.05);
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.5);
+    }
+  }
 }
 
 .canvas-container {

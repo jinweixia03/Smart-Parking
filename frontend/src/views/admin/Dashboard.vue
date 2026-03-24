@@ -1,5 +1,10 @@
 <template>
-  <div class="dashboard">
+  <div class="dashboard" data-testid="dashboard-page">
+    <!-- 测试标记 -->
+    <div class="test-marker" v-if="showTestMarkers">
+      <span class="marker-label">TS-DS-001: 数据大屏测试区域</span>
+    </div>
+
     <el-card>
       <template #header>
         <div class="card-header">
@@ -182,11 +187,18 @@ const refreshData = async () => {
   }
 }
 
+// 测试标记显示控制
+const showTestMarkers = ref(false)
+
 watch(timeRange, () => loadChart())
 
 let refreshTimer = null
 
 onMounted(async () => {
+  // 检查是否显示测试标记
+  const urlParams = new URLSearchParams(window.location.search)
+  showTestMarkers.value = urlParams.get('test') === '1'
+
   initChart()
   await Promise.all([loadStats(), loadChart(), loadRecords()])
   refreshTimer = setInterval(() => Promise.all([loadStats(), loadRecords()]), 30000)
@@ -204,6 +216,45 @@ onUnmounted(() => {
   padding: 24px;
   height: 100%;
   box-sizing: border-box;
+  position: relative;
+
+  // 测试标记样式
+  .test-marker {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    animation: markerPulse 2s infinite;
+
+    .marker-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      &::before {
+        content: '📷';
+        font-size: 14px;
+      }
+    }
+  }
+
+  @keyframes markerPulse {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+    50% {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5);
+    }
+  }
 
   :deep(.el-card) {
     height: 100%;
